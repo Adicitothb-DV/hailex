@@ -7,5 +7,5 @@
   - **Laptop 1 (Backend + Datos NASA):** Integrante 1 (Líder técnico, API, integración, Git) + Integrante 2 (NASA POWER, normalización, fixtures).
   - **Laptop 2 (Frontend + Agronomía/QA):** Integrante 3 (React, MapLibre, Recharts, UI) + Integrante 4 (Catálogo cultivos/suelos Querétaro-Bajío, reglas, validación, pitch).
 - **Módulos:** Dashboard, Earth Explorer, Climate Intelligence, Rotation Studio, Analysis & Insights + Procedencia transversal.
-- **Endpoints Core (`/api/v1`):** `GET /health`, `GET /api/v1/climate`, `GET /api/v1/crops`, `GET /api/v1/sources`, `POST /api/v1/rotations/compare`.
+- **Endpoints canónicos V1 (documentados, no implementados):** `GET /api/v1/health`, `GET /api/v1/climate/series`, `GET /api/v1/crops`, `GET /api/v1/sources`, `POST /api/v1/rotations/compare`. Fuente de verdad: `docs/API_CONTRACT.md`.
 - **Principio Rector:** Explicabilidad, determinismo, procedencia verificable y honestidad científica.
