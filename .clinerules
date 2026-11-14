@@ -1,0 +1,24 @@
+# HaiLex — Reglas del Proyecto para Cline (VS Code)
+Proyecto: HaiLex (NASA Space Apps Challenge 2026 - Field Shift: Adapting Farms with NASA Data).
+Identidad: Usa SIEMPRE "HaiLex" (nunca "AgroShift", nunca atribuyas etimología indígena).
+
+## Stack Obligatorio
+- Frontend (`frontend/`): React + Vite + TypeScript (strict, sin `any` indiscriminado) + Tailwind CSS + shadcn/ui + MapLibre GL JS + Recharts + Motion (solo transiciones útiles <300ms). NO usar Three.js.
+- Backend (`backend/`): Python + FastAPI + Pydantic v2 + HTTPX + Pandas + NumPy + Uvicorn + Pytest + Ruff.
+- Datos MVP: JSON y CSV en `backend/app/data/`. Sin base de datos ni autenticación en MVP.
+
+## Reglas Científicas y de Datos (NO NEGOCIABLES)
+1. NUNCA inventes datos de NASA, suelos, rendimientos, ahorros de agua o carbono.
+2. Todo dato simulado/demo debe llevar etiqueta explícita (`DEMO DATA`, `SIMULADO` o `ILUSTRATIVO`) y `data_type` claro.
+3. No confundas humedad superficial con zona radicular, ni estimación satelital/INEGI con medición en campo/laboratorio.
+4. El motor de rotación (`backend/app/analysis/rotation_engine.py`) es 100% determinista (sin LLM en runtime).
+5. Si falta un dato crítico para un criterio, márcalo `not_assessable` (nunca asignes 0 silenciosamente).
+6. Nunca uses "óptimo" ni "garantizado"; usa "mejor evaluado bajo estos criterios y datos disponibles".
+
+## Reglas de Ingeniería y Ahorro de Tokens
+1. Lee `docs/API_CONTRACT.md` y `PROJECT_STATUS.md` antes de tocar endpoints o tipos.
+2. Modifica SOLO los archivos solicitados en la tarea. No reescribas archivos completos si basta un diff acotado.
+3. Mantén rutas FastAPI delgadas; pon la lógica en `services/` y `analysis/`.
+4. Frontend debe manejar estados `loading`, `success`, `empty`, `error` y nunca duplicar lógica del backend.
+5. Nunca pongas secretos en código ni en variables `VITE_*`.
+6. Al terminar una tarea: ejecuta pruebas/lint aplicables (`pytest`/`ruff` o `npm run build`) y actualiza `PROJECT_STATUS.md` y `CHANGELOG.md`.
