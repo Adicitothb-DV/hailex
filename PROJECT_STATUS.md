@@ -1,11 +1,11 @@
 # PROJECT_STATUS.md — Estado Actual del Proyecto
 
-- **Última actualización:** 2026-11-14 15:28 (America/Mexico_City)
-- **Fase actual:** INT-01 — Contrato API V1 documentado para revisión final; sin implementación.
-- **Commit base verificado:** `dad906e` en `feature/backend-core`; contiene `origin/main` y coincide con main remoto consultado antes de editar. Cambios INT-01 sin commit/push.
+- **Última actualización:** 2026-11-14 17:29 (America/Mexico_City)
+- **Fase actual:** Fase 5 — Backend foundation implementado y validado; publicación Git en curso al redactar este registro.
+- **Checkpoint documental:** `2d40f11` (`docs: define API and data contracts`), sobre base `dad906e`, conservó los cinco documentos de INT-01. Commit funcional: `feat: create FastAPI service foundation` (consultar git log tras su creación).
 - **Estado por módulo:**
-  - Contrato canónico V1: `docs/API_CONTRACT.md`, redactado; raíz `API_CONTRACT.md` solo referencia. Revisión final humana pendiente.
-  - Backend FastAPI: `partial` — CPython 3.13.17 x64, `.venv`, dependencias y herramientas listas; aplicación/endpoints pendientes (Fase 5).
+  - Contrato canónico V1: `docs/API_CONTRACT.md`, aprobado para implementar; raíz `API_CONTRACT.md` solo referencia, sin cambios en esta fase.
+  - Backend foundation: `implemented` — FastAPI, health canónico, Swagger/OpenAPI, configuración, CORS, errores y logging/request ID. No equivale a backend de negocio completo.
   - Cliente NASA POWER: `planned` (Fase 6)
   - Catálogo agrícola y reglas: `planned` (Fase 4 / Fase 7)
   - Motor de comparación: `planned` (Fase 8)
@@ -16,4 +16,7 @@
 - **Git BE-02:** `.venv` ignorado y sin archivos rastreados; no se modificó frontend, contratos ni `.env.example`.
 - **INT-01:** cinco rutas canónicas bajo `/api/v1`; sobres uniformes, procedencia, faltantes, estados independientes eligibility/assessment_status, snapshots en memoria 30 minutos y único worker documentados. Unidades/reglas agronómicas pendientes de verificación, no inventadas.
 - **Validación INT-01:** revisión documental y parseo estricto de ejemplos JSON; no pruebas de servidor ni nuevos modelos ejecutables. Ver informe final de la tarea para resultados.
-- **Próxima tarea exacta:** revisión humana de contrato y handoff a frontend antes de autorizar esquemas/base FastAPI con health y pruebas. No hay endpoints implementados.
+- **Validación Fase 5:** 24 pruebas Pytest aprobadas; Ruff check y format correctos (13 archivos); pip check sin conflictos. Smoke Uvicorn real con health/Swagger/OpenAPI HTTP 200 y X-Request-ID; proceso temporal detenido. Véase `docs/TESTING.md`.
+- **Configuración Fase 5:** CPython/venv/dependencias conservados. Settings lee `.env` opcional y CSV CORS; orígenes locales explícitos, sin credenciales ni wildcard. APP_PORT validado pero cambio de puerto requiere CLI --port; variables NASA siguen reservadas.
+- **Límites:** solo `/api/v1/health` implementado. Sin NASA, catálogo, sources, snapshots, motor, DB/auth o frontend integrado. GitHub CLI no detectado; no se promete PR creado. Resultado de push y hash final se verifican en el informe de cierre, no se anticipan aquí.
+- **Próxima tarea exacta:** revisión cruzada de foundation; continuar Fase 4 verificando fuentes/unidades/productos NASA y región/periodo piloto, antes de implementar cliente POWER en Fase 6. Fases 7/8 requieren catálogo y reglas documentadas.

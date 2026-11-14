@@ -1,5 +1,13 @@
 # CHANGELOG.md
 
+## Fase 5 - 2026-11-14 17:29 (America/Mexico_City)
+- **Cambio:** aplicación FastAPI con factoría, GET /api/v1/health, modelos de sobre/error, configuración Pydantic Settings, CORS local, request ID UUID y logging sanitizado; 24 pruebas sin red.
+- **Archivos:** nuevos módulos en `backend/app/api/`, `backend/app/core/`, `backend/app/schemas/`, `backend/app/main.py` y `backend/tests/`; documentación actualizada en backend/README, README, PROJECT_CONTEXT/STATUS, ARCHITECTURE, TESTING y KNOWN_LIMITATIONS.
+- **Validación:** Pytest 24 passed; Ruff check/format correctos; pip check sin conflictos. Uvicorn real responde health, Swagger y OpenAPI por HTTP; proceso temporal detenido. Sin nuevas dependencias ni cambios frontend, contrato, datos o entorno versionado.
+- **Seguridad:** errores HTTP/validación/500 con sobre contractual, X-Request-ID y logs sin cuerpos/headers/queries/mensajes de excepción. Destino de acceso Uvicorn redactado. CORS sin wildcard/credenciales.
+- **Git:** contrato anterior preservado en commit independiente `2d40f11`; este bloque pertenece a `feat: create FastAPI service foundation`. Publicación normal pendiente de ejecución/verificación al redactar; GitHub CLI no disponible. No merge a main.
+- **Pendientes:** Fase 4 investigación/fixtures, Fase 6 POWER, Fase 7 catálogo, Fase 8 reglas/motor; no están implementados por foundation.
+
 ## INT-01 - 2026-11-14 15:28 (America/Mexico_City)
 - **Cambio:** contrato canónico V1 completo en `docs/API_CONTRACT.md`; archivo raíz `API_CONTRACT.md` únicamente de referencia; actualización mínima de `PROJECT_STATUS.md` y de las dos rutas anteriores en `PROJECT_CONTEXT.md` para evitar instrucciones contradictorias.
 - **Decisiones:** rutas canónicas, sobres, procedencia por variable, ausencia→null, catálogo con evidencia, eligibility separado de assessment_status, comparabilidad/empates, snapshots 30 minutos dependientes del proceso y único worker.

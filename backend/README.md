@@ -2,8 +2,9 @@
 
 ## Estado
 
-BE-02 prepara únicamente el entorno y las herramientas. No existen todavía la aplicación
-FastAPI, endpoints, cliente NASA, catálogo ni motor de rotaciones. No se incluyen datos demo.
+Fase 5 implementa la base FastAPI: health, OpenAPI/Swagger, configuración, CORS,
+errores uniformes, request ID, logging seguro y 24 pruebas locales.
+No existen cliente NASA, catálogo, snapshots ni motor de rotaciones. No se incluyen datos demo.
 El contrato compartido está en `C:\Users\Alex\Downloads\hailex\docs\API_CONTRACT.md`.
 
 ## Requisitos y decisiones
@@ -21,7 +22,8 @@ El contrato compartido está en `C:\Users\Alex\Downloads\hailex\docs\API_CONTRAC
 
 Dependencias de ejecución: FastAPI y Uvicorn (API/ASGI), Pydantic v2 y Pydantic Settings
 (validación/configuración), HTTPX (NASA), Pandas y NumPy (series y cálculos del MVP).
-Desarrollo: Pytest y Ruff. Se preparan ahora; su presencia no implica funciones implementadas.
+Desarrollo: Pytest y Ruff. Pandas/NumPy/HTTPX quedan preparados para fases posteriores;
+su presencia no significa integración climática ni reglas agronómicas implementadas.
 
 ## Preparación en PowerShell
 
@@ -73,30 +75,73 @@ Ejecutar desde `C:\Users\Alex\Downloads\hailex\backend`:
 & '.\.venv\Scripts\python.exe' -B -m pytest -p no:cacheprovider
 ```
 
-**Por ahora Pytest no encuentra pruebas y devuelve código 5**: no representa pruebas
-aprobadas. Ruff puede no encontrar archivos Python; eso tampoco valida funcionalidad.
-La comprobación de FastAPI es el comando de importación/versión anterior, no `fastapi --version`.
+La suite de Fase 5 contiene 24 pruebas sin servicios externos. Utiliza
+HTTPX ASGITransport y asyncio, no TestClient ni paquetes nuevos. Validación obligatoria:
 
-La comprobación adicional en memoria con `TestClient` funcionó, pero Starlette 1.10.0
-advierte que su integración con HTTPX está deprecada. No se añadió `httpx2`: queda
-registrado para decidir el enfoque de pruebas HTTP al implementar la aplicación.
-No es un fallo de importación ni de `pip check`.
+```powershell
+Set-Location 'C:\Users\Alex\Downloads\hailex\backend'
+& '.\.venv\Scripts\python.exe' -m pytest -q
+& '.\.venv\Scripts\python.exe' -m ruff check app tests
+& '.\.venv\Scripts\python.exe' -m ruff format --check app tests
+& '.\.venv\Scripts\python.exe' -m pip check
+```
 
-Cuando una fase posterior implemente `app.main:app`, el comando de desarrollo será:
+## Iniciar servidor y consultar Swagger
+
+Sin activar el entorno (recomendado si PowerShell bloquea scripts):
 
 ```powershell
 Set-Location 'C:\Users\Alex\Downloads\hailex\backend'
 & '.\.venv\Scripts\python.exe' -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-**No ejecutarlo todavía:** `app.main` aún no existe.
+También puede activar el entorno en una terminal autorizada:
+
+```powershell
+Set-Location 'C:\Users\Alex\Downloads\hailex\backend'
+& 'C:\Users\Alex\Downloads\hailex\backend\.venv\Scripts\Activate.ps1'
+python -m uvicorn app.main:app --reload
+```
+
+No se cambia la política de ejecución del sistema. Si la activación está bloqueada,
+use el ejecutable explícito del ejemplo anterior.
+
+- Health: `http://127.0.0.1:8000/api/v1/health`.
+- Swagger: `http://127.0.0.1:8000/docs`.
+- OpenAPI: `http://127.0.0.1:8000/openapi.json`.
+- Versión del servicio `0.1.0`, contrato `1.0.0`; health solo comprueba la aplicación.
+- No hay alias `/health`; clima, crops, sources y compare todavía devuelven 404.
 
 ## Variables de entorno y seguridad
 
 `C:\Users\Alex\Downloads\hailex\backend\.env.example` documenta las variables previstas.
-Todavía no hay cargador de configuración: instalar Pydantic Settings no activa esa plantilla.
-No se ha creado `.env`, ni se garantiza que Uvicorn lea `APP_PORT` automáticamente.
-En una fase posterior se validarán timeout, CORS y configuración NASA.
+Settings carga opcionalmente `.env` desde la carpeta backend, en UTF-8; las variables
+de entorno prevalecen. No se creó `.env` ni se necesita para ejecutar valores locales.
+
+| Variable | Estado en Fase 5 |
+|---|---|
+| APP_ENV | development/test/production, desarrollo por defecto; debug HTTP siempre desactivado. |
+| APP_PORT | Entero 1..65535, default 8000; validado pero Uvicorn CLI requiere `--port` explícito para cambiarlo. |
+| CORS_ORIGINS | CSV de orígenes HTTP(S) sin ruta, credenciales ni wildcard; default localhost:5173 y 127.0.0.1:5173. |
+| NASA_POWER_BASE_URL | Reservada para Fase 6; no se utiliza en esta fase. |
+| NASA_POWER_TIMEOUT_SECONDS | Reservada para Fase 6; no se utiliza en esta fase. |
+
+CORS permite GET/POST y preflight OPTIONS, Content-Type, sin credenciales. Expone
+X-Request-ID para lectura por frontend. Nuevos orígenes requieren configuración explícita;
+un origen rechazado no recibe Access-Control-Allow-Origin (CORS no bloquea clientes no navegador).
+
+Errores: `error: {code, message, request_id, fields}`; 400 para JSON inválido, 422 para
+validación, 404/405 para rutas/métodos y 500 seguro para fallos inesperados.
+Cada petición genera UUID propio en X-Request-ID y request.state, sin confiar en el ID
+enviado por cliente. Los logs de aplicación incluyen método, ruta de plantilla, estado,
+duración y request ID; no cuerpos, headers, queries ni mensajes de excepción sensibles.
+Los fallos internos registran tipo y ubicaciones de frames, sin variables locales.
+El log de acceso estándar Uvicorn tiene su destino redactado para no filtrar queries.
+
+Arquitectura real: `app/main.py` compone configuración, router, handlers y middleware;
+`app/api/routes/health.py` solo liveness; `app/schemas/common.py` modelos de wire;
+`app/core/` configuración, errores, contexto/logging y CORS. Véase documentación de
+arquitectura y pruebas en `C:\Users\Alex\Downloads\hailex\docs`.
 
 `.venv`, `.env` y cachés están excluidos por las reglas Git del repositorio.
 Versionar `pyproject.toml` y `requirements.lock`, nunca el entorno ni credenciales.
