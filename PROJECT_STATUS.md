@@ -1,5 +1,19 @@
 # PROJECT_STATUS.md — Estado Actual del Proyecto
 
+## FE-02 — 2026-11-14
+
+- Rama: `feature/frontend-shell`; commit base: `79403f6`. Cambios FE-02 aún sin commit.
+- Frontend base: `implemented` (React, Vite, TypeScript estricto, Tailwind, ESLint y Prettier).
+- Los cinco módulos funcionales permanecen `planned`; no hay API ni lógica de negocio en cliente.
+- Se conservan los 14 placeholders y todos los directorios existentes.
+- PASS: instalación con `npm.cmd ci`, build/typecheck, lint, formato y arranque dev.
+- PASS: HTTP 200 y montaje React en Chrome headless; Tailwind genera estilos.
+- Limitación: revisión visual manual/responsive y consola pendientes.
+- Seguridad: npm audit completo reporta siete hallazgos moderados en dependencias de desarrollo
+  de typescript-eslint/minimatch; producción (`--omit=dev`): cero. No se aplicó fix forzado.
+- Próxima tarea: revisar FE-02 y el aviso de seguridad antes de implementar shell/navegación.
+- Backend y contrato API no modificados. El estado inicial siguiente se conserva como histórico.
+
 - **Última actualización:** 2026-11-14 10:00 (America/Mexico_City)
 - **Fase actual:** Fase 0 / Fase 2 — Estructura base y línea base Git inicializadas
 - **Commit actual:** Pendiente primer commit (`chore: initialize HaiLex baseline structure`)
