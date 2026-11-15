@@ -21,6 +21,19 @@
   min-height: 80px;
   resize: vertical;
 }
+.advisor-chat textarea {
+  width: 100%;
+  resize: vertical;
+}
+.advisor-chat fieldset {
+  margin: 16px 0;
+}
+.advisor-context {
+  max-height: 400px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 .geojson-display {
   max-height: 180px;
   overflow: auto;

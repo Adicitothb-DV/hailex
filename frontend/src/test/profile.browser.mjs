@@ -139,6 +139,39 @@ try {
     ).includes('Alfalfa'),
   );
   console.log('PASS deterministic rotation comparison via backend');
+  await evaluate(`(() => {
+    const textarea = document.querySelector('.advisor-chat textarea');
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(textarea, '¿Qué debo revisar?');
+    textarea.dispatchEvent(new Event('input', {bubbles:true}));
+    document.querySelector('.advisor-chat input[required]').click();
+  })()`);
+  await delay(100);
+  await evaluate("document.querySelector('.advisor-chat form').requestSubmit()");
+  await waitFor(
+    "document.querySelector('.advisor-chat [role=alert]')?.textContent.includes('clave')",
+  );
+  assert.equal(
+    await evaluate("document.querySelector('.advisor-chat textarea').value"),
+    '¿Qué debo revisar?',
+  );
+  console.log('PASS advisor missing-key state preserves draft');
+  await evaluate(`(() => {
+    const original = window.fetch;
+    window.fetch = async (url, options) => {
+      if (String(url).includes('/advisor/chat')) {
+        window.__advisorRequest = JSON.parse(options.body);
+        return new Response(JSON.stringify({data:{answer:{conclusion:'Respuesta simulada',interpretation:'Revisión de campo',actions:['Verificar agua'],limitations:['Datos parciales'],follow_up_questions:[]},context:{forecast:{status:'forecast_not_reliable'}},model:'openai/gpt-oss-120b',prompt_version:'test'},warnings:[]}), {status:200,headers:{'Content-Type':'application/json'}});
+      }
+      return original(url, options);
+    };
+    document.querySelectorAll('.advisor-chat fieldset input')[1].click();
+  })()`);
+  await delay(100);
+  await evaluate("document.querySelector('.advisor-chat form').requestSubmit()");
+  await waitFor("document.querySelector('.advisor-chat').innerText.includes('Respuesta simulada')");
+  assert.equal(await evaluate('window.__advisorRequest.include_siap'), false);
+  assert.equal(await evaluate('window.__advisorRequest.message'), '¿Qué debo revisar?');
+  console.log('PASS advisor success rendering and selected context (mock)');
 } finally {
   socket?.close();
   browser.kill();

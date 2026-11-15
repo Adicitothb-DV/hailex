@@ -18,6 +18,18 @@ export type SavedAnalysis = {
   acquired_at: string | null;
   status: string;
 };
+export type AdvisorResponse = {
+  answer: {
+    conclusion: string;
+    interpretation: string;
+    actions: string[];
+    limitations: string[];
+    follow_up_questions: string[];
+  };
+  context: Record<string, unknown>;
+  model: string;
+  prompt_version: string;
+};
 export type RotationComparison = {
   ordering: 'family_change_requested' | 'not_assessable';
   options: {

@@ -3,6 +3,7 @@ import { PageHeading } from '../../components/PageHeading';
 import { api } from '../../services/api';
 import type { RotationComparison, SavedAnalysis } from '../../types/monitoring';
 import { AgriculturalProfile } from './AgriculturalProfile';
+import { AdvisorChat } from './AdvisorChat';
 
 const crops = [
   ['maiz_forrajero', 'Maíz forrajero en verde'],
@@ -242,23 +243,7 @@ export function AnalysisInsightsPage() {
           </div>
         )}
       </section>
-      <section className="surface">
-        <h2>Consulta al asesor</h2>
-        <p>
-          El asistente conversacional con Groq no está disponible en esta versión. El perfil no se
-          envía a servicios externos.
-        </p>
-        <p>
-          <a
-            href="https://www.inegi.org.mx/app/indicesdeprecios/Estructura.aspx?idEstructura=1120008000400020"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            INEGI publica índices de precios al productor
-          </a>
-          ; no son cotizaciones actuales por unidad de producto.
-        </p>
-      </section>
+      <AdvisorChat region={region} crop={previous} water={water} analysisId={analysisId} />
     </>
   );
 }

@@ -1,5 +1,19 @@
 # HaiLex — Contrato API V1
 
+## Asesor Groq — 2026-11-15
+
+- `POST /api/v1/advisor/chat`: mensaje de hasta 4000 caracteres, región y cultivo opcionales,
+  modalidad, ID satelital opcional, perfil declarado sin nombre y banderas por fuente.
+  Responde con interpretación estructurada, contexto preparado, versión de prompt y modelo.
+- NASA POWER consulta los 30 días anteriores al día UTC actual para puntos municipales; el
+  consolidado SIAP filtra municipio/cultivo y conserva ciclo/modalidad por separado. La
+  humedad SMAP/MERRA mantiene variable y unidad; Sentinel-2 no equivale a humedad del suelo.
+- No hay previsión numérica validada, citas web actuales, herramientas de escritura ni
+  fallback automático de modelo. Contexto y texto se envían a Groq; no usar en despliegue
+  público multiusuario sin autenticación y controles adicionales.
+- Errores tipados incluyen `groq_api_key_missing`, `groq_rate_limited`, `groq_auth_error`,
+  `groq_timeout`, `groq_model_unavailable`, `groq_provider_error` y `groq_invalid_response`.
+
 ## Comparación limitada de familias — 2026-11-15
 
 - `POST /api/v1/rotation-workspace/compare`: acepta `previous_crop` (ID de catálogo o

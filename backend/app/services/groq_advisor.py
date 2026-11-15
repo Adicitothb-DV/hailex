@@ -1,0 +1,128 @@
+"""Groq chat integration: no tools, writes, automatic model fallback or secret logging."""
+
+import json
+
+import httpx
+from pydantic import ValidationError
+
+from app.core.config import Settings
+from app.schemas.advisor import AdvisorAnswer
+from app.services.advisor_prompt import SYSTEM_PROMPT
+
+MODEL = "openai/gpt-oss-120b"
+URL = "https://api.groq.com/openai/v1/chat/completions"
+
+
+class AdvisorError(Exception):
+    def __init__(self, code: str, status: int, message: str, retry_after: str | None = None):
+        self.code, self.status, self.message, self.retry_after = code, status, message, retry_after
+        super().__init__(message)
+
+
+async def generate(
+    settings: Settings, message: str, context: dict, transport=None
+) -> AdvisorAnswer:
+    key = settings.groq_api_key.get_secret_value().strip()
+    if not key:
+        raise AdvisorError(
+            "groq_api_key_missing", 503, "La clave Groq no está configurada en el backend."
+        )
+    encoded = json.dumps(context, ensure_ascii=False, allow_nan=False, separators=(",", ":"))
+    if len(encoded) > 24000:
+        raise AdvisorError(
+            "advisor_context_too_large",
+            422,
+            "El contexto excede el límite permitido; desactiva alguna fuente.",
+        )
+    # Keep the provider schema minimal; Pydantic applies length limits after decoding.
+    schema = {
+        "type": "object",
+        "properties": {
+            "conclusion": {"type": "string"},
+            "interpretation": {"type": "string"},
+            "actions": {"type": "array", "items": {"type": "string"}},
+            "limitations": {"type": "array", "items": {"type": "string"}},
+            "follow_up_questions": {"type": "array", "items": {"type": "string"}},
+        },
+        "required": [
+            "conclusion",
+            "interpretation",
+            "actions",
+            "limitations",
+            "follow_up_questions",
+        ],
+        "additionalProperties": False,
+    }
+    payload = {
+        "model": MODEL,
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {
+                "role": "user",
+                "content": json.dumps(
+                    {"question": message, "evidence": context}, ensure_ascii=False, allow_nan=False
+                ),
+            },
+        ],
+        "response_format": {
+            "type": "json_schema",
+            "json_schema": {"name": "agronomic_answer", "strict": True, "schema": schema},
+        },
+        "max_completion_tokens": settings.groq_max_completion_tokens,
+        "reasoning_effort": "medium",
+        "stream": False,
+    }
+    try:
+        async with httpx.AsyncClient(
+            timeout=settings.groq_timeout_seconds, transport=transport, trust_env=False
+        ) as client:
+            response = await client.post(
+                URL, headers={"Authorization": f"Bearer {key}"}, json=payload
+            )
+    except httpx.TimeoutException as exc:
+        raise AdvisorError(
+            "groq_timeout", 504, "Groq no respondió a tiempo. Tu consulta se conserva."
+        ) from exc
+    except httpx.HTTPError as exc:
+        raise AdvisorError("groq_provider_error", 503, "No se pudo conectar con Groq.") from exc
+    if response.status_code == 429:
+        retry = response.headers.get("retry-after", "")
+        retry = retry if retry.isascii() and retry.isdigit() and len(retry) <= 6 else None
+        raise AdvisorError(
+            "groq_rate_limited",
+            429,
+            "Cuota de Groq alcanzada temporalmente. Intenta más tarde.",
+            retry,
+        )
+    if response.status_code in (401, 403):
+        raise AdvisorError(
+            "groq_auth_error", 503, "Groq rechazó la clave o los permisos del modelo."
+        )
+    if response.status_code == 404:
+        raise AdvisorError(
+            "groq_model_unavailable", 503, "El modelo Groq no está disponible para esta cuenta."
+        )
+    if not response.is_success:
+        raise AdvisorError("groq_provider_error", 503, "Groq no pudo completar la consulta.")
+    try:
+        body = response.json()
+        choice = body["choices"][0]
+        if choice.get("finish_reason") != "stop":
+            raise ValueError("incomplete")
+        content = choice["message"]["content"]
+        if not isinstance(content, str) or len(content) > 20000:
+            raise ValueError("invalid content")
+        answer = AdvisorAnswer.model_validate_json(content)
+        if key in content:
+            raise ValueError("credential in response")
+        if any(
+            len(item) > 1200
+            for group in (answer.actions, answer.limitations, answer.follow_up_questions)
+            for item in group
+        ):
+            raise ValueError("field too long")
+        return answer
+    except (ValueError, KeyError, IndexError, TypeError, ValidationError) as exc:
+        raise AdvisorError(
+            "groq_invalid_response", 502, "Groq devolvió una respuesta incompleta o inválida."
+        ) from exc

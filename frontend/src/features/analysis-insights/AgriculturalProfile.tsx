@@ -177,8 +177,8 @@ export function AgriculturalProfile() {
         {message && <p role="status">{message}</p>}
       </form>
       <p className="fine-print">
-        Este perfil es un registro declarado por el usuario. No se envía a ningún asesor ni modifica
-        parcelas o análisis.
+        Este perfil es declarado por el usuario. Solo se envía a Groq si lo seleccionas al
+        consultar; no modifica parcelas ni análisis.
       </p>
     </section>
   );

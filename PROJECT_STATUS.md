@@ -1,5 +1,15 @@
 # PROJECT_STATUS.md — Estado Actual del Proyecto
 
+## Asesor Groq — 2026-11-15
+
+- Integrado chat server-side con `openai/gpt-oss-120b`, contexto opcional de perfil local,
+  consolidado SIAP, clima y humedad NASA POWER, y análisis Sentinel-2 seleccionado. El motor
+  de rotación sigue determinista. El texto se procesa fuera del equipo con consentimiento.
+- Respuesta JSON validada, errores tipados y sin fallback automático. No hay búsqueda web ni
+  forecast numérico validado; el modelo puede equivocarse y no sustituye revisión de campo.
+- Comprobados 133 tests backend, Ruff, build/typecheck/lint frontend y navegador con estado
+  de clave ausente. Groq real no probado: no había clave configurada en este entorno.
+
 ## Rotación limitada — 2026-11-15
 
 - Asesor Agrícola conserva el perfil local, sustituye la tabla SIAP por formulario y consulta
@@ -8,8 +18,8 @@
 - Permite escoger un análisis satelital archivado como contexto descriptivo, sin usar índices
   para decidir cultivos. Municipio y modalidad son declarados; suelo, clima, calendario,
   requerimientos hídricos y economía permanecen no evaluables. No hay predicción numérica.
-- Groq y conversación no implementados por prohibición de LLM en runtime en AGENTS.md;
-  INEGI es una referencia de índices, no precios por producto. El perfil no se envía al motor.
+- En esta fase anterior el perfil no se enviaba al motor; la integración Groq posterior se
+  describe arriba. INEGI es una referencia de índices, no precios por producto.
 - Verificación: 117 pruebas backend y Ruff; build, typecheck y lint frontend; prueba de
   navegador del perfil y comparador con backend real.
 

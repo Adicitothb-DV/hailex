@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
-from pydantic import Field, field_validator
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 SERVICE_VERSION = "0.1.0"
@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     app_port: int = Field(default=8000, ge=1, le=65535)
     nasa_power_base_url: str = "https://power.larc.nasa.gov/api/temporal/daily/point"
     nasa_power_timeout_seconds: float = Field(default=15, gt=0, le=120, allow_inf_nan=False)
+    groq_api_key: SecretStr = SecretStr("")
+    groq_timeout_seconds: float = Field(default=60, gt=0, le=120, allow_inf_nan=False)
+    groq_max_completion_tokens: int = Field(default=1600, ge=128, le=4000)
     climate_cache_ttl_seconds: int = Field(default=1800, ge=1, le=86400)
     climate_cache_max_entries: int = Field(default=128, ge=1, le=4096)
     climate_snapshot_max_entries: int = Field(default=1024, ge=1, le=10000)

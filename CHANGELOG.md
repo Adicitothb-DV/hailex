@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## Asesor Groq — 2026-11-15
+
+- Integrado chat Groq server-side con prompt versionado, salida validada y contexto opcional
+  del perfil, SIAP, NASA POWER y análisis satelital; sin cambiar el motor determinista.
+- Sin pronóstico numérico validado ni búsqueda web. API key solo en configuración backend.
+
 ## Rotación limitada — 2026-11-15
 
 - Añadido comparador determinista de familias y formulario Asesor Agrícola en lugar de la
