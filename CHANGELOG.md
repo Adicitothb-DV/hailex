@@ -1,5 +1,10 @@
 # CHANGELOG.md
 
+## Fase 7B — pipeline SIAP offline
+- Lectura XLSX con hash, observaciones normalizadas, controles y agregados provisionales.
+- Precios originales separados; siniestros preservados; sin interpolación ni modelos.
+- Dependencia de lectura XLSX openpyxl y pruebas sintéticas sin red.
+
 ## Frontend V2 — 2026-11-14 (America/Mexico_City)
 
 - Diseño de tokens, drawer accesible y cinco vistas; estado compartido de ubicación.

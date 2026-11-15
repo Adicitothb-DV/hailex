@@ -1,5 +1,13 @@
 # PROJECT_STATUS.md — Estado Actual del Proyecto
 
+## Fase 7B — pipeline SIAP offline
+
+- Código de ingesta, calidad, normalización y agregación en `backend/scripts/data_pipeline/`.
+- Libro de entrada conservado; 155 filas, 153 sin alertas automáticas y 2 con advertencia
+  por producción cero, sin rechazos. Brecha 2015–2020; precio de siniestros indefinido.
+- Agregados colapsados provisionales; diccionario, unidades monetarias y procedencia
+  de `Precio` aún no verificados. No modelos, consulta NASA ni nuevos endpoints.
+
 ## Frontend V2 — 2026-11-14 (hora de México)
 
 - Base UI-01 preservada en `c194c23`; merge del backend `9e481ab` en `cc213eb`.

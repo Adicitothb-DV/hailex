@@ -1,0 +1,122 @@
+{
+  "total_rows": 155,
+  "accepted": 153,
+  "warnings": 2,
+  "rejected": 0,
+  "reasons": {
+    "zero_production_price_unavailable": 2
+  },
+  "missing_fields": {
+    "source_row": 0,
+    "Anio": 0,
+    "Idestado": 0,
+    "Nomestado": 0,
+    "Idddr": 0,
+    "Nomddr": 0,
+    "Idcader": 0,
+    "Nomcader": 0,
+    "Idmunicipio": 0,
+    "Nommunicipio": 0,
+    "Idciclo": 0,
+    "Nomcicloproductivo": 0,
+    "Idmodalidad": 0,
+    "Nommodalidad": 0,
+    "Idunidadmedida": 0,
+    "Nomunidad": 0,
+    "Idcultivo": 0,
+    "Nomcultivo": 0,
+    "Sembrada": 0,
+    "Cosechada": 0,
+    "Siniestrada": 0,
+    "Volumenproduccion": 0,
+    "Rendimiento": 0,
+    "Preciomediorural": 114,
+    "Valorproduccion": 0,
+    "Archivo_Origen": 0,
+    "Hoja_Origen": 0,
+    "Nomcultivo Sin Um": 155,
+    "Precio": 41,
+    "municipality_name": 0,
+    "region_id": 0,
+    "crop_name_raw": 0,
+    "crop_name": 0,
+    "crop_product_form": 0,
+    "agricultural_cycle": 0,
+    "irrigation_mode": 0,
+    "price_from_value_volume": 2,
+    "pmr_price_difference_abs": 114,
+    "pmr_price_difference_rel": 114,
+    "workbook_price_difference_abs": 43,
+    "workbook_price_difference_rel": 43,
+    "price_status": 0,
+    "analytical_price": 2,
+    "price_inconsistent": 0
+  },
+  "years_present": [
+    2003,
+    2004,
+    2005,
+    2006,
+    2007,
+    2008,
+    2009,
+    2010,
+    2011,
+    2012,
+    2013,
+    2014,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "years_missing_within_range": [
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020
+  ],
+  "distributions": {
+    "Anio": {
+      "2010": 10,
+      "2008": 10,
+      "2007": 10,
+      "2006": 10,
+      "2005": 10,
+      "2003": 10,
+      "2023": 9,
+      "2014": 9,
+      "2013": 9,
+      "2012": 9,
+      "2011": 9,
+      "2009": 9,
+      "2004": 9,
+      "2025": 8,
+      "2024": 8,
+      "2022": 8,
+      "2021": 8
+    },
+    "Nomcultivo": {
+      "Cebada grano": 48,
+      "Sorgo forrajero en verde": 38,
+      "Maíz forrajero en verde": 35,
+      "Alfalfa verde": 34
+    },
+    "Nommunicipio": {
+      "Colón": 80,
+      "El Marqués": 75
+    },
+    "Nommodalidad": {
+      "Riego": 136,
+      "Temporal": 19
+    },
+    "Nomcicloproductivo": {
+      "Primavera-Verano": 86,
+      "Otoño-Invierno": 35,
+      "Perennes": 34
+    }
+  }
+}

@@ -1,5 +1,12 @@
 # PROJECT_CONTEXT.md — Contexto Vivo de HaiLex
 
+## Pipeline SIAP — Fase 7B
+
+- Ingesta offline reproducible del XLSX entregado, con originales, huella y calidad;
+  no certifica el origen oficial ni las unidades monetarias del consolidado.
+- Conserva ciclo, modalidad, siniestros y dos campos de precio. Agregados colapsados
+  son provisionales; 2015–2020 faltan y no se interpolan. Sin modelos ni endpoints.
+
 ## Frontend V2
 
 - Navegación de cinco vistas, estado compartido de punto y consulta, mapa vectorial MapLibre

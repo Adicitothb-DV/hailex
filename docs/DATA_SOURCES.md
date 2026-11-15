@@ -1,5 +1,14 @@
 # DATA_SOURCES.md — Fuentes y procedencia de HaiLex
 
+## Consolidado SIAP aportado — Fase 7B
+
+El equipo aportó `backend/data/raw/siap/Consolidado_El_Marques_Colon_Cultivos.xlsx`.
+El pipeline genera un manifiesto con SHA-256 y hora de proceso; el libro se mantiene
+intacto. `Archivo_Origen` identifica otro consolidado, no el CSV original SIAP;
+procedencia oficial y unidades de precio/valor pendientes del diccionario. Los datos
+no son mediciones de parcelas. El campo `Preciomediorural` es distinto de `Precio`.
+El consolidado no contiene 2015–2020; no se recuperaron ni interpolaron esos años.
+
 Investigación consultada el **14 de noviembre de 2026** (hora de México). `planned`
 significa sin integración de producto; una consulta o fixture no implementa un servicio.
 El usuario confirmó en Fase 6 conservar La Cañada como referencia municipal de El Marqués.

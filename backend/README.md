@@ -1,5 +1,37 @@
 # HaiLex Backend (FastAPI)
 
+## Pipeline SIAP offline — Fase 7B
+
+Colocar el XLSX original sin modificar en
+`C:\Users\Alex\Downloads\hailex\backend\data\raw\siap\Consolidado_El_Marques_Colon_Cultivos.xlsx`.
+La hoja requerida es `Consolidado`. Instalar el lock descrito abajo: incorpora openpyxl
+para leer XLSX (y su dependencia et-xmlfile). Ejecutar desde backend:
+
+```powershell
+Set-Location 'C:\Users\Alex\Downloads\hailex\backend'
+& '.\.venv\Scripts\python.exe' -m pip install -r '.\requirements.lock'
+& '.\.venv\Scripts\python.exe' -m scripts.data_pipeline.run_siap_pipeline
+& '.\.venv\Scripts\python.exe' -m pytest -q
+& '.\.venv\Scripts\python.exe' -m ruff check .
+```
+
+Resultados regenerables en `C:\Users\Alex\Downloads\hailex\backend\data\processed\siap`:
+observaciones, resumen por ciclo/modalidad, serie colapsada, reporte y manifiesto.
+El origen se lee sin escribirlo y su SHA-256 está en el manifiesto. Las filas
+rechazadas siguen en observaciones; los grupos afectados se suprimen en agregados.
+`accepted` significa sin alertas automáticas, no validación oficial. `warning` requiere
+revisión; `rejected` indica clave, categoría o medida inválida y no borra la fila.
+
+`Preciomediorural` se conserva separado de `Precio`; `official_pmr` identifica solo el
+nombre del campo, no certifica el consolidado. `workbook_price_unverified` no implica
+PMR oficial. La diferencia absoluta mayor a 0.005 requiere revisión; con producción cero
+el precio analítico es nulo. Un agregado de precio es suma de valores dividida entre suma
+de volúmenes, no promedio simple. La tabla colapsada mezcla explícitamente ciclo y
+modalidad y es provisional: pueden existir solapamientos; no usarla como dato validado.
+Unidades monetarias, equivalencia oficial, calendarios y procedencia original pendientes;
+2015–2020 no se imputan. CSV y reporte son deterministas; el manifiesto registra hora de
+ejecución, por lo que cambia al regenerar. No se consulta NASA ni se crean endpoints.
+
 ## Estado
 
 Fase 6 incorpora cliente NASA POWER, clima, fuentes, caché y snapshots en memoria,

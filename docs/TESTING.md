@@ -1,5 +1,14 @@
 # TESTING.md — Plan y Registro de Pruebas
 
+## SIAP Fase 7B
+
+Pruebas sin internet con libros XLSX sintéticos: lectura y hash, categorías, ceros,
+precios separados y derivados, ponderación por producción, duplicados, anomalías,
+faltantes y reproducibilidad. Ejecutar desde `C:\Users\Alex\Downloads\hailex\backend`:
+`python -m pytest -q` y `python -m ruff check .`. El libro real se procesa por separado;
+el manifiesto registra la huella y los CSV se regeneran sin modificar el original.
+Validación local: 69 pruebas aprobadas, Ruff check correcto y `pip check` sin conflictos.
+
 ## Frontend V2 — 14 de noviembre de 2026, hora de México
 
 - `npm.cmd run typecheck`, lint y build: correctos; build avisa del tamaño del módulo de mapa.

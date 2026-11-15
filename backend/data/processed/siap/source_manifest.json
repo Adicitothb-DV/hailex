@@ -1,0 +1,22 @@
+{
+  "pipeline_version": "1.0.0",
+  "source_file": "Consolidado_El_Marques_Colon_Cultivos.xlsx",
+  "source_sheet": "Consolidado",
+  "sha256": "14ab095a9c5f0661bbd1d569c4dac968918425626fe5836d87c6645dffd9fc6f",
+  "source_description": "SIAP-derived workbook supplied by team; original CSV provenance unverified",
+  "siap_reference": "https://nube.agricultura.gob.mx/datosAbiertos/Agricola.php",
+  "processed_at_utc": "2026-11-15T07:10:56.867832+00:00",
+  "rules": [
+    "raw columns preserved",
+    "original workbook immutable",
+    "price equals value divided by positive volume",
+    "summary does not average unit prices",
+    "suppress aggregates with invalid rows or incompatible units"
+  ],
+  "warnings": [
+    "official dictionary and price/value units not verified",
+    "Precio provenance unverified",
+    "collapsed cycle and irrigation aggregates are provisional",
+    "no missing years interpolated"
+  ]
+}
