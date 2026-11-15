@@ -1,5 +1,23 @@
 # PROJECT_STATUS.md — Estado Actual del Proyecto
 
+## UI-01 — 2026-11-14 (America/Mexico_City; hora no registrada)
+
+- Rama `feature/frontend-shell`; base `cae89d8`. Implementación local pendiente de revisión/commit.
+- Shell `implemented`: tema claro/verde bosque, sidebar, header, menú móvil nativo y cinco rutas por fragmento.
+- Pantallas `partial`: contenido de orientación y estados vacíos honestos; mapa, clima, perfil,
+  escenarios, comparación y conexión API siguen `planned`.
+- Sin cifras o fixtures ficticios, sin HTTP ni lógica agronómica; backend y contrato sin cambios.
+- Sin nuevas dependencias. Se añade script `test:ui` con Node y Chrome/Edge local.
+- Prueba de navegador PASS: cinco rutas a 320/768/1024/1366 px, foco, enlaces activos,
+  historial/recarga, menú, Escape y movimiento reducido; se corrigió un fallo inicial de foco.
+- Verificación final ampliada PASS: Shift+Tab, cierre al pasar a desktop y ausencia de errores
+  de consola capturados; suite repetida correctamente sobre desarrollo y build con preview.
+- Repetición final PASS: typecheck, lint, format:check y build.
+- Límites: pendiente revisión visual manual, zoom 200 %, contraste y lector de pantalla.
+- Aviso previo de seguridad de herramientas FE-02 conservado; no se repitió npm audit.
+- Próxima tarea: revisar UI-01 antes de fixtures, estado compartido o integración de datos.
+- El merge anterior `cae89d8` está registrado en la rama; su bloque siguiente es histórico.
+
 ## Estado integrado — 2026-11-14 (America/Mexico_City; hora no registrada)
 
 - Rama: `feature/frontend-shell`. Integración de `origin/main` (`dad906e`, PR #1) sobre FE-02 (`ea630b4`).
@@ -15,7 +33,6 @@
 - Próximas tareas: revisión FE-02/seguridad y shell/navegación; revisión BE-02, intérprete y base FastAPI.
 
 ## Registro FE-02 — 2026-11-14
-## FE-02 — 2026-11-14
 
 - Rama: `feature/frontend-shell`; commit base: `79403f6`. FE-02 guardado en `ea630b4`.
 - Frontend base: `implemented` (React, Vite, TypeScript estricto, Tailwind, ESLint y Prettier).

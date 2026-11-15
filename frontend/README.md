@@ -1,10 +1,15 @@
 # HaiLex Frontend (React + Vite + TypeScript)
 
-## Estado: FE-02 — configuración base
+## Estado: UI-01 — identidad, layout y navegación
 
-Aplicación mínima ejecutable, sin lógica de negocio, llamadas HTTP ni datos agrícolas.
-Se conservan los directorios de los cinco módulos: Dashboard, Earth Explorer,
-Climate Intelligence, Rotation Studio y Analysis & Insights. Sus funciones están pendientes.
+Shell ejecutable con sidebar, header, menú móvil y cinco pantallas navegables:
+Dashboard, Earth Explorer, Climate Intelligence, Rotation Studio y Analysis & Insights.
+Las funciones agrícolas siguen pendientes: no hay llamadas HTTP, mapa, gráficas,
+formularios de escenarios, puntuaciones ni datos simulados.
+
+El tema claro y la navegación verde bosque aplican la dirección visual V1 aprobada.
+Los controles nativos y pequeños SVG propios evitan dependencias adicionales en esta fase.
+shadcn/ui y Lucide no se incorporaron; se evaluarán cuando exista una necesidad concreta.
 
 ## Requisitos
 
@@ -66,10 +71,57 @@ modifica en esta tarea. No se han añadido fixtures ni datos simulados.
 
 ## Comprobación manual
 
-1. Abrir la URL de desarrollo y comprobar el título HaiLex y el aviso de configuración inicial.
+1. Abrir la URL de desarrollo y recorrer las cinco secciones; sus funciones pendientes están identificadas.
 2. Comprobar que no hay errores en la consola del navegador.
 3. Revisar la pantalla a 320, 768 y 1366 píxeles de ancho y con zoom al 200 %.
 4. Repetir con `build` y `preview` para comprobar el artefacto de producción.
+5. Probar atrás/adelante, recargar una ruta y abrir `#/unknown` (pantalla de recuperación).
+6. Con teclado: enlace de salto, foco en contenido al navegar, menú móvil, Tab/Shift+Tab y Escape.
+
+## Navegación y organización UI-01
+
+Las rutas son fragmentos (`#/dashboard`, `#/earth-explorer`, `#/climate-intelligence`,
+`#/rotation-studio`, `#/analysis-insights`). La raíz muestra Dashboard. No hay React Router.
+
+- `src/App.tsx`: composición de pantallas y recuperación de ruta desconocida.
+- `src/app/navigation/navigation.ts`: catálogo y resolución tipada de destinos, no modelos API.
+- `src/hooks/useScreenNavigation.ts`: suscripción a cambios de fragmento con React.
+- `src/app/layout/AppLayout.tsx`: sidebar, diálogo móvil, foco y contenido principal.
+- `src/app/layout/AppHeader.tsx` y `Sidebar.tsx`: contexto y navegación compartidos.
+- `src/components/NavigationIcon.tsx`, `PageHeading.tsx`, `PendingPanel.tsx`: piezas reutilizables.
+- `src/features/*/*Page.tsx`: contenido propio de cada pantalla, sin lógica agrícola.
+- `src/styles/globals.css`: tokens Tailwind, tema claro, layout, responsive y movimiento reducido.
+- `src/test/shell.browser.mjs`: prueba real de navegador mediante DevTools y Node, sin paquetes extra.
+
+Se conservan los directorios y sus 14 `.gitkeep`. No se modifica el contrato API provisional.
+Los indicadores describen ausencia de integración, no una conexión externa comprobada.
+
+## Prueba de navegador UI-01
+
+Con el servidor de desarrollo iniciado, ejecutar en otra terminal desde `frontend`:
+
+```powershell
+npm.cmd run test:ui
+```
+
+Requiere Chrome o Edge local; el script busca sus rutas habituales de Windows.
+Para otra instalación, definir `CHROME_PATH` con la ruta absoluta del ejecutable.
+`HAILEX_TEST_URL` permite probar otro servidor (por ejemplo preview en el puerto 4173).
+El navegador de prueba usa un perfil temporal fuera del repositorio y se cierra al terminar.
+Su carpeta temporal se informa en la salida y no se elimina automáticamente.
+
+Comprueba cinco rutas a 320/768/1024/1366 px sin desbordamiento horizontal, encabezado único,
+enlace activo, foco, historial, recarga, menú móvil, Tab/Shift+Tab, Escape, cambio a desktop,
+ruta desconocida, movimiento reducido y ausencia de recursos externos y errores de ejecución/consola.
+No equivale a una auditoría completa de accesibilidad ni a revisión visual/lector de pantalla.
+
+## Evidencia UI-01
+
+- Prueba de navegador: PASS después de corregir el recorrido cíclico de foco del menú.
+- TypeScript, ESLint, formato y build: PASS en la verificación final.
+- Suite ampliada PASS tanto en desarrollo como en el build servido con preview.
+- Sin paquetes añadidos ni actualización de dependencias; lockfile conservado.
+- Pendiente: revisión visual manual, zoom al 200 %, contraste y lector de pantalla.
 
 ## Evidencia de validación FE-02
 

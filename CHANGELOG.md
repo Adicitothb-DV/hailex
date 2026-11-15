@@ -1,5 +1,18 @@
 # CHANGELOG.md
 
+## UI-01 — 2026-11-14 (America/Mexico_City; hora no registrada)
+
+- Shell frontend V1: tema claro, navegación verde bosque, header y cinco pantallas con estados honestos.
+- Rutas por fragmento, enlaces activos, historial, recuperación de ruta y gestión de foco.
+- Menú móvil con diálogo nativo, Escape, ciclo Tab/Shift+Tab y cierre al pasar a desktop.
+- SVG propios y controles HTML; no se añadieron dependencias ni se modificó el lockfile.
+- Prueba reproducible Node/Chrome sin librerías nuevas; primer fallo de foco corregido.
+- PASS finales: typecheck, lint, format:check, build y suite de navegador en dev y preview.
+- Archivos: App, layout/navegación, componentes, hook, cinco features, estilos, prueba y script;
+  README, PROJECT_STATUS y CHANGELOG actualizados. Eliminado un encabezado FE-02 duplicado.
+- Sin backend, API, datos simulados ni cálculo agronómico. Limitaciones visuales/manuales documentadas.
+- Commit pendiente; base `cae89d8`. Resultados finales registrados en PROJECT_STATUS.
+
 ## Integración backend en frontend — 2026-11-14 (America/Mexico_City; hora no registrada)
 
 - Merge de `origin/main` (`dad906e`, PR #1) en `feature/frontend-shell`, sin reescribir historial ni modificar `main`.

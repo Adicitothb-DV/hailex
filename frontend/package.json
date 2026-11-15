@@ -14,6 +14,7 @@
     "preview": "vite preview",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
+    "test:ui": "node src/test/shell.browser.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
