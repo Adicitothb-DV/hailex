@@ -1,0 +1,85 @@
+{
+  "processed_at_utc": "2026-11-15T08:19:59.842775+00:00",
+  "siap_sha256": "3b06fbc870d9b366a41c32fe90e7c9afc56bdf9ac6aee995b8c34c1204471e5b",
+  "sources": [
+    {
+      "region_id": "colon_queretaro",
+      "mode": "cached_historical_snapshot",
+      "start": "2003-01-01",
+      "end": "2024-12-31",
+      "sha256": "a9e4195af530cee579c5cd21eb318579951ca6848649c0232a0453bac901e6ef",
+      "retrieved_at_utc": "2026-11-15T07:33:16.059759+00:00",
+      "warnings": [
+        "Una celda regional no describe con exactitud una parcela."
+      ]
+    },
+    {
+      "region_id": "colon_queretaro",
+      "mode": "historical_fixture",
+      "start": "2025-01-01",
+      "end": "2025-12-31",
+      "sha256": "c434212fb62c310f1f1c7ffd2a61d2edee13b6f0e1f504c0cbbbef04c2883568",
+      "retrieved_at_utc": "2026-11-15T01:18:22.165131Z",
+      "warnings": [
+        "Una celda regional no describe con exactitud una parcela."
+      ]
+    },
+    {
+      "region_id": "el_marques_queretaro",
+      "mode": "cached_historical_snapshot",
+      "start": "2003-01-01",
+      "end": "2024-12-31",
+      "sha256": "32dd856115d50b8a98a543bd9a890ec2b24b72fb5192439839329f216b47cba1",
+      "retrieved_at_utc": "2026-11-15T07:33:17.158736+00:00",
+      "warnings": [
+        "Una celda regional no describe con exactitud una parcela."
+      ]
+    },
+    {
+      "region_id": "el_marques_queretaro",
+      "mode": "historical_fixture",
+      "start": "2025-01-01",
+      "end": "2025-12-31",
+      "sha256": "0fec451ae940d60830184a0ff13c4a8f6b20153a7dbfe0d5090f473820f04679",
+      "retrieved_at_utc": "2026-11-15T01:18:21.538798Z",
+      "warnings": [
+        "Una celda regional no describe con exactitud una parcela."
+      ]
+    }
+  ],
+  "coordinates": {
+    "colon_queretaro": [
+      20.78832639,
+      -100.04543056
+    ],
+    "el_marques_queretaro": [
+      20.60656972,
+      -100.33109667
+    ]
+  },
+  "community": "AG",
+  "time_standard": "UTC",
+  "parameter_metadata": {
+    "T2M": {
+      "unit": "C",
+      "resolution": "0.5° latitude × 0.625° longitude",
+      "data_type": "model"
+    },
+    "PRECTOTCORR": {
+      "unit": "mm/day",
+      "resolution": "0.5° latitude × 0.625° longitude",
+      "data_type": "model"
+    },
+    "ALLSKY_SFC_SW_DWN": {
+      "unit": "MJ/m^2/day",
+      "resolution": "1° latitude × 1° longitude",
+      "data_type": "estimate"
+    }
+  },
+  "limitations": [
+    "municipal reference points, not fields",
+    "national windows are approximate, not phenology",
+    "solar identical values do not prove shared cell",
+    "scenario terciles summarize retrospective data"
+  ]
+}

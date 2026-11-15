@@ -1,0 +1,24 @@
+{
+  "region": "colon_queretaro",
+  "coordinates": [
+    20.78832639,
+    -100.04543056
+  ],
+  "start": "2003-01-01",
+  "end": "2024-12-31",
+  "retrieved_at_utc": "2026-11-15T07:33:16.059759+00:00",
+  "endpoint": "https://power.larc.nasa.gov/api/temporal/daily/point",
+  "community": "AG",
+  "time_standard": "UTC",
+  "parameters": [
+    "T2M",
+    "PRECTOTCORR",
+    "ALLSKY_SFC_SW_DWN"
+  ],
+  "sha256": "a9e4195af530cee579c5cd21eb318579951ca6848649c0232a0453bac901e6ef",
+  "storage": "canonical JSON reserialized from PowerClient parsed response, not HTTP bytes",
+  "normalizer_version": "1.0.0",
+  "warnings": [
+    "Una celda regional no describe con exactitud una parcela."
+  ]
+}

@@ -17,3 +17,5 @@ coverage/
 Thumbs.db
 .vscode/
 incoming/
+backend/data/cache/
+backend/data/processed/field_analyses/

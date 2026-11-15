@@ -1956,6 +1956,9 @@ Tareas:
 
 **Objetivo:** integrar las características de cultivos y contexto local.
 
+Alcance vigente: catálogo y perfil con fuentes, validación y datos desconocidos explícitos;
+POWER aporta contexto climático descriptivo. La cartografía INEGI no es laboratorio.
+
 Tareas:
 
 - Catálogo JSON.
