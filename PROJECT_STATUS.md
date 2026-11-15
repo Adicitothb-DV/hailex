@@ -1,5 +1,12 @@
 # PROJECT_STATUS.md — Estado Actual del Proyecto
 
+## Fase 7C — panel climático histórico
+
+- POWER 2003–2024 para ambos puntos y fixtures 2025; 16 802 filas diarias, 151 ventanas
+  agrícolas y 155 observaciones SIAP unidas sin expansión. 143 ventanas completas y 8
+  incompletas. Ventanas nacionales aproximadas, sin fases fenológicas locales.
+- Sin anomalías 1991–2020, modelos ni pronósticos; escenarios son terciles retrospectivos.
+
 ## Fase 7B — pipeline SIAP offline
 
 - Código de ingesta, calidad, normalización y agregación en `backend/scripts/data_pipeline/`.

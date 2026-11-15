@@ -1,13 +1,23 @@
 # KNOWN_LIMITATIONS.md — Limitaciones Conocidas
 
+## Clima Fase 7C
+
+- Ventanas nacionales aproximadas, con discrepancia de inicio PV entre fuentes SIAP;
+  faltan calendarios locales y fechas fenológicas. Alfalfa se trata como perenne especial.
+- Falta parte de 2002 y 2026 para ocho ventanas; las sumas completas no se calculan.
+- No se adquirió referencia 1991–2020: no hay anomalías. Los terciles retrospectivos
+  son hipotéticos y no deben utilizarse para predicción sin cortes temporales sin fuga.
+- Instantáneas históricas son JSON reserializados, no respuestas HTTP originales; los
+  puntos pueden compartir celdas, y radiación idéntica no prueba una celda compartida.
+
 ## SIAP Fase 7B
 
 - El consolidado intermedio no certifica la fuente original; diccionario y unidades de
   precio/valor no verificados. `official_pmr` denota el campo, no certificación de origen.
 - Las agregaciones por municipio/cultivo son provisionales y colapsan ciclo/modalidad;
   el solapamiento de superficies y la comparabilidad de unidades requieren revisión.
-- Años 2015–2020 ausentes; sin interpolación, datos externos, pronósticos ni integración
-  climática. El resultado sin advertencias no sustituye validación agronómica o estadística.
+- Años SIAP 2015–2020 ausentes; sin interpolación ni pronósticos. El resultado sin
+  advertencias no sustituye validación agronómica o estadística.
 
 ## Frontend V2
 

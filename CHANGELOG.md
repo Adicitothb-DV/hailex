@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## Fase 7C — clima histórico y panel agrícola
+- POWER histórico por punto y agregados por ventanas nacionales aproximadas SIAP.
+- Unión sin expansión de filas y trazabilidad; escenarios retrospectivos no predictivos.
+
 ## Fase 7B — pipeline SIAP offline
 - Lectura XLSX con hash, observaciones normalizadas, controles y agregados provisionales.
 - Precios originales separados; siniestros preservados; sin interpolación ni modelos.

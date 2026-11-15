@@ -1,5 +1,29 @@
 # HaiLex Backend (FastAPI)
 
+## Pipeline climático histórico — Fase 7C
+
+Desde `C:\Users\Alex\Downloads\hailex\backend`:
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m scripts.data_pipeline.climate_history
+& '.\.venv\Scripts\python.exe' -m scripts.data_pipeline.run_climate_pipeline
+```
+
+La primera orden reutiliza instantáneas verificadas y, si faltan, consulta POWER de forma
+secuencial para 2003–2024. La segunda es offline y reutiliza fixtures 2025. Se guardan
+JSON canónicos reserializados, no los bytes HTTP originales, con SHA-256 y metadatos.
+El CSV diario y las características están en `backend/data/processed/climate/`; el panel
+en `backend/data/processed/siap/agricultural_climate_panel.csv`. No sustituye sus entradas.
+
+Calendario nacional aproximado SIAP: OI octubre t-1–septiembre t; PV marzo t–marzo t+1;
+alfalfa octubre t-1–septiembre t. Otra publicación oficial indica abril para inicio de
+siembra PV: se utiliza marzo de la página de calendario, con incertidumbre histórica y
+sin fechas locales ni fases fenológicas. Los periodos incompletos no generan agregados
+totales. Temperaturas mínimas y máximas son extremos de medias diarias, no T2M_MIN/MAX.
+Precipitación diaria >=1 mm y rachas <1 mm siguen Climdex; terciles retrospectivos con
+al menos 10 periodos completos son exploratorios, no pronósticos y filtran futuro si se
+usan para entrenar. No se calculan anomalías 1991–2020 ni escenarios climáticos futuros.
+
 ## Pipeline SIAP offline — Fase 7B
 
 Colocar el XLSX original sin modificar en

@@ -1,5 +1,13 @@
 # TESTING.md — Plan y Registro de Pruebas
 
+## Clima Fase 7C
+
+La suite agrega pruebas offline de UTC, unidades, periodos transanuales, alfalfa,
+faltantes, umbrales, escenarios, unión y reproducibilidad con entradas sintéticas.
+Los datos POWER reales se adquirieron en dos solicitudes, no en la suite de pruebas.
+Validación local: 75 pruebas aprobadas, Ruff check y formato correctos, `pip check`
+sin conflictos; panel real de 155 filas a partir de 155 observaciones.
+
 ## SIAP Fase 7B
 
 Pruebas sin internet con libros XLSX sintéticos: lectura y hash, categorías, ceros,

@@ -1,5 +1,22 @@
 # DATA_SOURCES.md — Fuentes y procedencia de HaiLex
 
+## Fase 7C: POWER y ventanas agrícolas
+
+Dos solicitudes secuenciales POWER Daily Point AG/UTC, 2003-01-01 a 2024-12-31;
+2025 se reutiliza de los fixtures originales verificados. Los JSON archivados son
+serializaciones canónicas de la respuesta parseada por el cliente, no bytes HTTP.
+Se mantienen 2003–2025 para ambos puntos, sin equivaler a mediciones de parcela.
+Detalles, hashes y unidades en `backend/data/processed/climate/climate_source_manifest.json`.
+
+El calendario SIAP (https://nube.agricultura.gob.mx/calendario_agricola/) define OI
+octubre–septiembre, PV marzo–marzo y el periodo especial de alfalfa octubre–septiembre.
+La referencia SIAP Panorama 2025 (https://nube.agricultura.gob.mx/panorama_dgsiap/2025.pdf)
+señala abril como inicio PV: la discrepancia requiere revisión, así como su aplicabilidad
+histórica y municipal. No son fechas de siembra o cosecha por parcela.
+El umbral de día húmedo >=1 mm y seco <1 mm sigue https://www.climdex.org/learn/indices/.
+POWER Daily documenta disponibilidad desde 1981, por lo que 1991–2020 es una ventana
+solicitable en principio; aquí no se verificó ni descargó su cobertura por parámetro.
+
 ## Consolidado SIAP aportado — Fase 7B
 
 El equipo aportó `backend/data/raw/siap/Consolidado_El_Marques_Colon_Cultivos.xlsx`.
