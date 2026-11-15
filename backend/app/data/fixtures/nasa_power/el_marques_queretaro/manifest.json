@@ -1,0 +1,102 @@
+{
+  "region_id": "el_marques_queretaro",
+  "point_id": "el_marques_reference_point",
+  "point_type": "municipal_reference_point",
+  "retrieval_mode": "historical_fixture",
+  "data_type": "unknown",
+  "historical_not_live": true,
+  "request_url": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M%2CPRECTOTCORR%2CALLSKY_SFC_SW_DWN&community=AG&longitude=-100.33109667&latitude=20.60656972&start=20250101&end=20251231&format=JSON&time-standard=UTC",
+  "http_status": 200,
+  "retrieved_at_utc": "2026-11-15T01:18:21.538798Z",
+  "requested_coordinates": {
+    "latitude": 20.60656972,
+    "longitude": -100.33109667,
+    "coordinate_reference_note": "Geographic degrees from INEGI; submitted without datum transformation; see DATA_SOURCES.md"
+  },
+  "query": {
+    "parameters": "T2M,PRECTOTCORR,ALLSKY_SFC_SW_DWN",
+    "community": "AG",
+    "longitude": "-100.33109667",
+    "latitude": "20.60656972",
+    "start": "20250101",
+    "end": "20251231",
+    "format": "JSON",
+    "time-standard": "UTC"
+  },
+  "returned_header": {
+    "title": "NASA/POWER Source Native Resolution Daily Data",
+    "api": {
+      "version": "v2.10.3",
+      "name": "POWER Daily API"
+    },
+    "sources": [
+      "MERRA2",
+      "SYN1DEG"
+    ],
+    "fill_value": -999.0,
+    "time_standard": "UTC",
+    "start": "20250101",
+    "end": "20251231"
+  },
+  "returned_geometry": {
+    "type": "Point",
+    "coordinates": [
+      -100.331,
+      20.607,
+      2029.51
+    ]
+  },
+  "period_returned": {
+    "start": "2025-01-01",
+    "end": "2025-12-31"
+  },
+  "counts": {
+    "T2M": {
+      "valid": 365,
+      "missing": 0
+    },
+    "PRECTOTCORR": {
+      "valid": 365,
+      "missing": 0
+    },
+    "ALLSKY_SFC_SW_DWN": {
+      "valid": 365,
+      "missing": 0
+    }
+  },
+  "parameters": {
+    "T2M": {
+      "unit": "C",
+      "spatial_resolution": "0.5 degree latitude x 0.625 degree longitude",
+      "temporal_resolution": "daily",
+      "data_type": "model",
+      "source": "MERRA2 reanalysis"
+    },
+    "PRECTOTCORR": {
+      "unit": "mm/day",
+      "spatial_resolution": "0.5 degree latitude x 0.625 degree longitude",
+      "temporal_resolution": "daily",
+      "data_type": "model",
+      "source": "MERRA2 observation-corrected precipitation forcing"
+    },
+    "ALLSKY_SFC_SW_DWN": {
+      "unit": "MJ/m^2/day",
+      "spatial_resolution": "1 degree latitude x 1 degree longitude",
+      "temporal_resolution": "daily",
+      "data_type": "estimate",
+      "source": "SYN1DEG satellite-derived surface irradiance"
+    }
+  },
+  "limitations": [
+    "Grid-scale historical data, not field measurements or live data.",
+    "Source coordinate datum and transformation limitations are documented in docs/DATA_SOURCES.md.",
+    "Different reference points may map to the same source grid cells."
+  ],
+  "warnings": [],
+  "payload_sha256": "0fec451ae940d60830184a0ff13c4a8f6b20153a7dbfe0d5090f473820f04679",
+  "source_documentation": [
+    "https://power.larc.nasa.gov/docs/services/api/temporal/daily/",
+    "https://power.larc.nasa.gov/docs/methodology/",
+    "https://power.larc.nasa.gov/docs/methodology/data/sources_meteorology/"
+  ]
+}

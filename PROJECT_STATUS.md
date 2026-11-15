@@ -1,5 +1,32 @@
 # PROJECT_STATUS.md — Estado Actual del Proyecto
 
+- **Última actualización:** 2026-11-14 (America/Mexico_City)
+- **Fase actual:** Fase 6 — NASA POWER Service implementado; revisión agronómica local pendiente según `docs/AGRONOMIC_RULES.md`.
+- **Checkpoint documental:** `2d40f11` (`docs: define API and data contracts`), sobre base `dad906e`, conservó los cinco documentos de INT-01. Commit funcional: `feat: create FastAPI service foundation` (consultar git log tras su creación).
+- **Estado por módulo:**
+  - Contrato canónico V1: `docs/API_CONTRACT.md`, aprobado para implementar; raíz `API_CONTRACT.md` solo referencia, sin cambios en esta fase.
+  - Backend foundation: `implemented` — FastAPI, health canónico, Swagger/OpenAPI, configuración, CORS, errores y logging/request ID. No equivale a backend de negocio completo.
+  - Cliente NASA POWER, clima y sources: `implemented` (Fase 6)
+  - Catálogo agrícola y reglas: `planned` (Fase 4 / Fase 7)
+  - Motor de comparación: `planned` (Fase 8)
+  - Frontend React + 5 módulos: `planned` (Fases 9–13)
+- **Verificaciones BE-02:** importaciones y ubicaciones de las nueve dependencias directas correctas dentro de `.venv`; `pip check` sin conflictos; Uvicorn/Pytest/Ruff ejecutables; Ruff check/format correctos; Pytest recolecta 0 pruebas (código 5, no suite aprobada). Smoke en memoria de FastAPI/OpenAPI, Pydantic Settings, HTTPX, Pandas y NumPy correcto; sin endpoints del proyecto.
+- **Reproducibilidad:** grupos `runtime`/`dev` en `backend/pyproject.toml`; snapshot de 30 paquetes en `backend/requirements.lock`, sin hashes, validado con instalación dry-run sobre el entorno actual (no segunda instalación limpia).
+- **Limitaciones BE-02:** terminal conserva PATH anterior; se usa ejecutable absoluto de `.venv`. Selección visual del intérprete en VS Code pendiente de confirmar por el desarrollador. Starlette TestClient emite deprecación al usar HTTPX; no se añadió otro cliente.
+- **Git BE-02:** `.venv` ignorado y sin archivos rastreados; no se modificó frontend, contratos ni `.env.example`.
+- **INT-01:** cinco rutas canónicas bajo `/api/v1`; sobres uniformes, procedencia, faltantes, estados independientes eligibility/assessment_status, snapshots en memoria 30 minutos y único worker documentados. Reglas agronómicas pendientes de validación; unidades POWER verificadas en respuestas históricas.
+- **Validación INT-01:** revisión documental y parseo estricto de ejemplos JSON; no pruebas de servidor ni nuevos modelos ejecutables. Ver informe final de la tarea para resultados.
+- **Validación Fase 5:** 24 pruebas Pytest aprobadas; Ruff check y format correctos (13 archivos); pip check sin conflictos. Smoke Uvicorn real con health/Swagger/OpenAPI HTTP 200 y X-Request-ID; proceso temporal detenido. Véase `docs/TESTING.md`.
+- **Configuración Fase 5:** CPython/venv/dependencias conservados. Settings lee `.env` opcional y CSV CORS; orígenes locales explícitos, sin credenciales ni wildcard. APP_PORT validado pero cambio de puerto requiere CLI --port; variables NASA siguen reservadas.
+- **Límites:** health, clima y sources implementados; catálogo, motor, DB/auth y frontend integrado pendientes. Caché y snapshots son memoria de un proceso; sin persistencia.
+- **Fase 4:** referencias municipales La Cañada, El Marqués y Colón, Colón; dos respuestas POWER 2025 HTTP 200 archivadas por separado, 365 valores válidos por variable y municipio. Ver manifiestos y `docs/DATA_SOURCES.md`. Datum específico de la fuente de coordenadas no verificado; verificación poligonal y revisión del diccionario de parámetros pendientes.
+- **Agronomía:** exactamente maíz forrajero, alfalfa, cebada y sorgo; SIAP en fichas estatales: avance octubre 2024 para El Marqués y cierre 2023 para Colón, no comparables automáticamente; secuencias sin evaluación local definitiva. Ciclos, riego y calendarios locales pendientes de desglose y revisión agronómica.
+- **Fuentes locales del equipo:** comunicadas, archivos y metadatos pendientes, no implementadas ni integradas.
+- **Fase 6:** cliente HTTPX, normalizador, errores seguros, caché de 30 minutos y snapshots de 30 minutos; respaldo histórico exacto informado. Consultas reales independientes 2025 y 2026; registro en `docs/TESTING.md`. La Cañada se conserva como referencia de El Marqués por confirmación del usuario.
+- **Próxima tarea exacta:** Fase 7 — catálogo agrícola, perfil de suelo e integración de fuentes gubernamentales locales; motor pendiente de Fase 8.
+
+## Historial de frontend (estado de cada momento)
+
 ## UI-01 — 2026-11-14 (America/Mexico_City; hora no registrada)
 
 - Rama `feature/frontend-shell`; base `cae89d8`. Implementación local pendiente de revisión/commit.

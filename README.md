@@ -18,7 +18,7 @@ Los agricultores toman decisiones de siembra y rotación bajo condiciones climá
 
 ## Stack Tecnológico
 - **Frontend:** React, Vite, TypeScript, Tailwind CSS, shadcn/ui, MapLibre GL JS, Recharts, Motion.
-- **Backend:** Python 3.11+, FastAPI, Pydantic, HTTPX, Pandas, NumPy, Uvicorn, Pytest, Ruff.
+- **Backend:** CPython 3.13 x64, FastAPI, Pydantic, HTTPX, Pandas, NumPy, Uvicorn, Pytest, Ruff.
 - **Datos:** JSON/CSV versionados + API pública NASA POWER Daily Point.
 
 ## Estructura del Repositorio
@@ -33,16 +33,22 @@ hailex/
 └── CHANGELOG.md
 ```
 
-## Ejecución Local (se actualizará tras Fase 5 y Fase 9)
+## Ejecución Local
 ### Backend
-```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate  # En Windows: .venv\Scripts\activate
-pip install -e ".[dev]"
-cp .env.example .env
-uvicorn app.main:app --reload --port 8000
+Fase 5 implementa solo infraestructura y `GET /api/v1/health`; los módulos de negocio
+descritos arriba son alcance previsto, no funciones terminadas. Instalación detallada:
+`C:\Users\Alex\Downloads\hailex\backend\README.md`.
+
+```powershell
+Set-Location 'C:\Users\Alex\Downloads\hailex\backend'
+# Si el entorno no existe: python -m venv .venv (usando CPython 3.13 x64).
+& '.\.venv\Scripts\python.exe' -m pip install -r 'C:\Users\Alex\Downloads\hailex\backend\requirements.lock'
+& '.\.venv\Scripts\python.exe' -m uvicorn app.main:app --reload
 ```
+
+Swagger `/docs`, OpenAPI `/openapi.json`, health `/api/v1/health` en localhost:8000.
+Sin `.env` obligatorio; CORS local configurable. Pruebas: `python -m pytest -q` desde
+backend usando `.venv`. No utilizar `pip install -e .`: no hay distribución empaquetada.
 
 ### Frontend
 ```bash
