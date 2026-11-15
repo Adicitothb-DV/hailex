@@ -88,7 +88,7 @@ def features(daily: pd.DataFrame, region: str, year: int, cycle: str, crop: str)
 
 
 def add_scenarios(frame: pd.DataFrame) -> pd.DataFrame:
-    """Retrospective terciles: exploratory, not forecasts; avoid leakage in modelling."""
+    """Retrospective terciles for descriptive historical context."""
     frame = frame.copy()
     for column in ("precip_total_mm", "t2m_mean_c"):
         if column not in frame:

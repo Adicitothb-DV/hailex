@@ -11,6 +11,19 @@ import {
 import { api } from '../services/api';
 import { locations, type StudyLocation } from '../data/locations';
 import type { ClimateSeries, Envelope, SourceEntry } from '../types/api';
+import type { FieldAnalysis, PolygonGeometry } from '../types/monitoring';
+
+export interface ParcelDraft {
+  latitude: string;
+  longitude: string;
+  municipality: string;
+  currentCrop: string;
+  soil: string;
+  soilSource: 'user_input' | 'cartographic_reference';
+  soilReference: string;
+  water: 'unknown' | 'rainfed' | 'irrigated';
+  restrictions: string;
+}
 
 type Connection = 'loading' | 'connected' | 'disconnected';
 type ClimateState = {
@@ -27,6 +40,16 @@ interface ContextValue {
   refreshConnection: () => void;
   climate: ClimateState;
   queryClimate: (start: string, end: string) => Promise<void>;
+  selectedCrop: string;
+  setSelectedCrop: (value: string) => void;
+  selectedCropName: string;
+  setSelectedCropName: (value: string) => void;
+  parcel: ParcelDraft;
+  setParcel: (value: ParcelDraft) => void;
+  fieldGeometry: PolygonGeometry | null;
+  setFieldGeometry: (value: PolygonGeometry | null) => void;
+  fieldAnalysis: FieldAnalysis | null;
+  setFieldAnalysis: (value: FieldAnalysis | null) => void;
 }
 const Context = createContext<ContextValue | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -36,6 +59,47 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [sourcesError, setSourcesError] = useState('');
   const [climate, setClimate] = useState<ClimateState>({ status: 'idle', result: null, error: '' });
   const [refresh, setRefresh] = useState(0);
+  const [selectedCrop, setSelectedCrop] = useState('');
+  const [selectedCropName, setSelectedCropName] = useState('');
+  const [fieldGeometry, setFieldGeometryState] = useState<PolygonGeometry | null>(() => {
+    try {
+      const value: unknown = JSON.parse(localStorage.getItem('hailex-field-geometry') || 'null');
+      if (
+        value &&
+        typeof value === 'object' &&
+        'type' in value &&
+        value.type === 'Polygon' &&
+        'coordinates' in value &&
+        Array.isArray(value.coordinates)
+      )
+        return value as PolygonGeometry;
+    } catch {
+      /* Storage may be disabled. */
+    }
+    return null;
+  });
+  const [fieldAnalysis, setFieldAnalysis] = useState<FieldAnalysis | null>(null);
+  const setFieldGeometry = useCallback((value: PolygonGeometry | null) => {
+    setFieldGeometryState(value);
+    setFieldAnalysis(null);
+    try {
+      if (value) localStorage.setItem('hailex-field-geometry', JSON.stringify(value));
+      else localStorage.removeItem('hailex-field-geometry');
+    } catch {
+      /* Storage is optional. */
+    }
+  }, []);
+  const [parcel, setParcel] = useState<ParcelDraft>({
+    latitude: '',
+    longitude: '',
+    municipality: '',
+    currentCrop: '',
+    soil: '',
+    soilSource: 'user_input',
+    soilReference: '',
+    water: 'unknown',
+    restrictions: '',
+  });
   const activeRequest = useRef<AbortController | null>(null);
   const setLocation = useCallback((next: StudyLocation) => {
     activeRequest.current?.abort();
@@ -109,6 +173,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       refreshConnection,
       climate,
       queryClimate,
+      selectedCrop,
+      setSelectedCrop,
+      selectedCropName,
+      setSelectedCropName,
+      parcel,
+      setParcel,
+      fieldGeometry,
+      setFieldGeometry,
+      fieldAnalysis,
+      setFieldAnalysis,
     }),
     [
       location,
@@ -119,6 +193,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       refreshConnection,
       climate,
       queryClimate,
+      selectedCrop,
+      selectedCropName,
+      parcel,
+      fieldGeometry,
+      setFieldGeometry,
+      fieldAnalysis,
     ],
   );
   return <Context.Provider value={value}>{children}</Context.Provider>;

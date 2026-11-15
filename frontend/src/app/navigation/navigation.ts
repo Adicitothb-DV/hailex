@@ -6,8 +6,8 @@ export const navigation = [
     label: 'Climate Intelligence',
     description: 'Clima y observaciones',
   },
-  { id: 'rotation-studio', label: 'Rotation Studio', description: 'Explora alternativas' },
-  { id: 'analysis-insights', label: 'Analysis & Insights', description: 'Evidencia y explicación' },
+  { id: 'rotation-studio', label: 'Parcel Monitoring', description: 'Monitoreo de parcela' },
+  { id: 'analysis-insights', label: 'Agricultural Context', description: 'Historial agrícola' },
 ] as const;
 
 export type ScreenId = (typeof navigation)[number]['id'];

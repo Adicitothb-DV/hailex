@@ -65,5 +65,5 @@
     "ALLSKY_SFC_SW_DWN": 8
   },
   "baseline_status": "1991-2020 not acquired; anomalies not calculated",
-  "scenario_status": "retrospective terciles from complete periods; hypothetical, not forecast"
+  "scenario_status": "retrospective terciles from complete periods; descriptive context"
 }

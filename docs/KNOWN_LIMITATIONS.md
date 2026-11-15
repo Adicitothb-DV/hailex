@@ -1,20 +1,23 @@
 # KNOWN_LIMITATIONS.md — Limitaciones Conocidas
 
-## Precios Fase 7D
+## Demo actual
 
-- El análisis es descriptivo parcial: no se entrenaron ni evaluaron modelos. No hay
-  métricas de backtest, pronósticos, escenarios de precios ni intervalos.
-- Las unidades y procedencia del consolidado no están verificadas; deflactor INEGI,
-  disponibilidad histórica por fecha y vintages pendientes. No comparar fuentes como
-  si fueran equivalentes. No usar terciles climáticos retrospectivos como predictores.
+El estado vigente y las limitaciones del procesamiento Sentinel-2, AOI, SIAP y
+persistencia se encuentran en `docs/FINAL_DEMO_SCOPE.md`. Los apartados siguientes
+conservan el contexto histórico de las fases anteriores.
+
+## Catálogo y parcela
+
+- El catálogo describe nombres y formas de producto; requisitos y calendarios locales
+  permanecen desconocidos. El perfil es un esquema, no un servicio de almacenamiento.
+- Ninguna clase edáfica se consulta automáticamente. Cartografía no es laboratorio.
 
 ## Clima Fase 7C
 
 - Ventanas nacionales aproximadas, con discrepancia de inicio PV entre fuentes SIAP;
   faltan calendarios locales y fechas fenológicas. Alfalfa se trata como perenne especial.
 - Falta parte de 2002 y 2026 para ocho ventanas; las sumas completas no se calculan.
-- No se adquirió referencia 1991–2020: no hay anomalías. Los terciles retrospectivos
-  son hipotéticos y no deben utilizarse para predicción sin cortes temporales sin fuga.
+- No se adquirió referencia 1991–2020: no hay anomalías; terciles son descriptivos.
 - Instantáneas históricas son JSON reserializados, no respuestas HTTP originales; los
   puntos pueden compartir celdas, y radiación idéntica no prueba una celda compartida.
 
@@ -24,7 +27,7 @@
   precio/valor no verificados. `official_pmr` denota el campo, no certificación de origen.
 - Las agregaciones por municipio/cultivo son provisionales y colapsan ciclo/modalidad;
   el solapamiento de superficies y la comparabilidad de unidades requieren revisión.
-- Años SIAP 2015–2020 ausentes; sin interpolación ni pronósticos. El resultado sin
+- Años SIAP 2015–2020 ausentes; sin interpolación. El resultado sin
   advertencias no sustituye validación agronómica o estadística.
 
 ## Frontend V2

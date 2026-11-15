@@ -59,8 +59,8 @@ const routes = [
   ['dashboard', 'La tierra, en perspectiva.'],
   ['earth-explorer', 'Earth Explorer'],
   ['climate-intelligence', 'Climate Intelligence'],
-  ['rotation-studio', 'Rotation Studio'],
-  ['analysis-insights', 'Analysis & Insights'],
+  ['rotation-studio', 'Parcel Monitoring'],
+  ['analysis-insights', 'Agricultural Context'],
 ];
 try {
   const portFile = join(profile, 'DevToolsActivePort');
@@ -163,6 +163,14 @@ try {
   );
   assert.equal(await evaluate("Boolean(document.querySelector('.provenance'))"), true);
   console.log('PASS Colón climate and state invalidation');
+  await evaluate("location.hash='#/analysis-insights'");
+  await waitFor("Boolean(document.querySelector('.agriculture-table tbody tr'))");
+  assert.ok(
+    (await evaluate('document.body.innerText')).includes('2015, 2016, 2017, 2018, 2019, 2020'),
+  );
+  console.log('PASS historial agrícola y brecha temporal');
+  await evaluate("location.hash='#/climate-intelligence'");
+  await waitFor("Boolean(document.querySelector('.climate-form'))");
   await evaluate(
     `(() => { const inputs = document.querySelectorAll('.climate-form input[type=date]'); const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set; setter.call(inputs[0], '2026-10-01'); inputs[0].dispatchEvent(new Event('input', {bubbles:true})); setter.call(inputs[1], '2026-10-07'); inputs[1].dispatchEvent(new Event('input', {bubbles:true})); })()`,
   );
@@ -201,6 +209,9 @@ try {
     (await evaluate("document.querySelector('.error-state').innerText")).includes('Reintentar'),
   );
   console.log('PASS disconnected backend and retry state');
+  await evaluate("location.hash='#/analysis-insights'");
+  await waitFor("Boolean(document.querySelector('[role=alert]'))");
+  console.log('PASS agricultural backend failure');
   await send('Network.setBlockedURLs', { urls: [] });
   for (const [route] of routes) {
     await evaluate(`location.hash='#/${route}'`);

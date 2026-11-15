@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
 
-// Approximate solar elevation from UTC time and geographic coordinates; not a weather forecast.
+// Approximate solar elevation from UTC time and geographic coordinates.
 function solarElevation(latitude: number, longitude: number, instant: Date) {
   const rad = Math.PI / 180;
   const day = Math.floor((instant.getTime() - Date.UTC(instant.getUTCFullYear(), 0, 0)) / 86400000);
@@ -55,7 +55,7 @@ export function SolarScene({
         <small>
           {now.toISOString().slice(0, 16).replace('T', ' ')} UTC
           <br />
-          Cálculo astronómico aproximado, no pronóstico.
+          Cálculo astronómico aproximado, independiente de las mediciones climáticas.
         </small>
       </div>
       <div className="solar-orb" aria-hidden="true">

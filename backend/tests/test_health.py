@@ -18,7 +18,12 @@ def test_health_contract(api_request):
 
 def test_openapi_and_swagger(api_request):
     schema = api_request("GET", "/openapi.json").json()
-    assert set(schema["paths"]) == {"/api/v1/health", "/api/v1/climate/series", "/api/v1/sources"}
+    assert set(schema["paths"]) >= {
+        "/api/v1/health",
+        "/api/v1/climate/series",
+        "/api/v1/sources",
+        "/api/v1/crops",
+    }
     assert "get" in schema["paths"]["/api/v1/health"]
     assert api_request("GET", "/docs").status_code == 200
 

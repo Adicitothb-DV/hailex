@@ -21,6 +21,30 @@ export function AppLayout({
   const [open, setOpen] = useState(false);
   const { connection, location, refreshConnection } = useApp();
   useEffect(() => {
+    const image = new Image();
+    image.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 64;
+      canvas.height = 64;
+      const context = canvas.getContext('2d');
+      if (!context) return;
+      context.drawImage(image, 0, 0, 64, 64);
+      // La punta visible está aproximadamente en (18, 17), no en la esquina del PNG.
+      const cursorImage = `url('${canvas.toDataURL()}') 18 17`;
+      document.documentElement.style.setProperty('--hailex-cursor-default', `${cursorImage}, auto`);
+      document.documentElement.style.setProperty(
+        '--hailex-cursor-pointer',
+        `${cursorImage}, pointer`,
+      );
+    };
+    image.src = '/cursor-hailex.png';
+    return () => {
+      image.onload = null;
+      document.documentElement.style.removeProperty('--hailex-cursor-default');
+      document.documentElement.style.removeProperty('--hailex-cursor-pointer');
+    };
+  }, []);
+  useEffect(() => {
     document.title = `${label} | HaiLex`;
     dialog.current?.close();
     main.current?.focus({ preventScroll: true });

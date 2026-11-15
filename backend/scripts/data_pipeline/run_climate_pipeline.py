@@ -88,7 +88,7 @@ def build(source: Path, climate_output: Path, panel_output: Path) -> dict:
             key: int((seasonal[f"{key}_missing_days"] > 0).sum()) for key in METADATA
         },
         "baseline_status": "1991-2020 not acquired; anomalies not calculated",
-        "scenario_status": "retrospective terciles from complete periods; hypothetical, not forecast",
+        "scenario_status": "retrospective terciles from complete periods; descriptive context",
     }
     manifest = {
         "processed_at_utc": datetime.now(UTC).isoformat(),
@@ -105,7 +105,7 @@ def build(source: Path, climate_output: Path, panel_output: Path) -> dict:
             "municipal reference points, not fields",
             "national windows are approximate, not phenology",
             "solar identical values do not prove shared cell",
-            "scenario terciles use retrospective data and leak future information",
+            "scenario terciles summarize retrospective data",
         ],
     }
     climate_output.mkdir(parents=True, exist_ok=True)

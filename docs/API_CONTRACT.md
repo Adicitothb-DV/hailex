@@ -1,5 +1,21 @@
 # HaiLex — Contrato API V1
 
+## Extensión implementada para demo — 2026-11-15
+
+- `POST /api/v1/fields/validate`: `{geometry}`; devuelve área, perímetro y bbox.
+- `POST /api/v1/fields/scenes` y `/fields/analyses`: `{geometry,start_date,end_date,
+  max_cloud,name,municipality,crop,item_id}`; `item_id` opcional. La búsqueda y análisis
+  usan Earth Search sin aceptar URL del cliente. El análisis puede responder `no_clear_scene`
+  o `insufficient_data`; errores de proveedor se entregan en el sobre de error V1.
+- `GET /api/v1/fields/analyses/{id}`, `/report` y `/layers/{true-color|ndvi|ndmi}`;
+  capas PNG locales; ID hexadecimal validado. Persistencia local sin garantía de retención.
+- `GET /api/v1/agriculture/series` admite `region`, `crop`, `cycle`, `mode` y devuelve
+  filas y cobertura. `GET /api/v1/agriculture/coverage` devuelve cobertura global.
+  `source_file_missing` representa ausencia del libro; precios originales permanecen
+  separados y el cociente requiere producción positiva. No hay forecast numérico.
+- El texto posterior es el contrato histórico de rotaciones previsto y no significa
+  que el endpoint de comparación esté implementado. Véase `docs/FINAL_DEMO_SCOPE.md`.
+
 **Versión:** 1.0.0. **Estado:** documentación redactada para revisión final humana.
 Este documento es canónico. API_CONTRACT.md en la raíz es solo una referencia.
 No implica endpoints, esquemas ejecutables, integración NASA ni motor implementados.
@@ -10,7 +26,7 @@ Contrato común React/TypeScript y FastAPI para las cinco pantallas de HaiLex.
 Backend es autoridad de datos, normalización, evaluación y explicaciones; frontend
 recoge entradas y presenta resultados sin duplicar cálculos científicos.
 Sin autenticación, base de datos, persistencia de parcelas, Redis, colas o LLM runtime.
-No predice rendimiento ni ofrece recomendaciones agronómicas científicamente validadas.
+No ofrece recomendaciones agronómicas científicamente validadas.
 
 ## 2. Convenciones generales
 
@@ -88,7 +104,7 @@ Antes de implementar/publicar valores:
 No se fijan unidades, resoluciones numéricas ni clasificación científica sin verificar.
 UTC se solicita explícitamente porque Daily usa LST por defecto. No clasificar todos
 los datos NASA como observación directa. Latencia/cobertura varían con producto.
-Celdas regionales no son mediciones de lote; históricos no predicen temporadas futuras.
+Celdas regionales no son mediciones de lote; los históricos son contexto descriptivo.
 
 Fuentes oficiales para verificar (no afirmar que ya se probó la integración):
 - https://power.larc.nasa.gov/docs/services/api/temporal/daily/
@@ -216,6 +232,19 @@ Respuesta completa 200 SIMULADA:
 
 sources es SourceRecord[]. Catálogo conocido vacío: 200 con crops [], versión y warning;
 catálogo ilegible/configuración inválida: error 500, no vacío engañoso.
+
+Implementado: catálogo local `backend/app/data/crop_catalog.json`, versión 1.0.0,
+cuatro cultivos y fuentes por identidad/atributo. El consolidado SIAP aportado conserva
+procedencia provisional; requerimientos y fechas locales son null/unknown. No se consulta
+NASA al solicitar el catálogo. Su contexto se obtiene por `/api/v1/climate/series` con
+periodo, coordenadas, unidad, procedencia y fecha de recuperación independientes.
+
+Esquema ejecutable de perfil independiente: `app.schemas.crops.ParcelProfile`. Contiene
+location con fuente y validación; municipality, current_crop, soil_classification y
+soil_texture con value/source/source_ref/validation_status; water_regime con origen y
+validación; restrictions con origen. No hay persistencia ni endpoint de parcela. Este
+esquema no sustituye todavía el cuerpo previsto para el endpoint compare no implementado.
+Cartografía requiere referencia; no es medición de campo ni análisis de laboratorio.
 
 ## 10. GET /api/v1/sources
 

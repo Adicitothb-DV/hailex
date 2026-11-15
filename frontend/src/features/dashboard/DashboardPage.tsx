@@ -7,7 +7,8 @@ import { StatusBadge } from '../../components/Shared';
 import type { VariableId } from '../../types/api';
 
 export function DashboardPage() {
-  const { location, connection, sources, sourcesError, climate } = useApp();
+  const { location, connection, sources, sourcesError, climate, fieldGeometry, fieldAnalysis } =
+    useApp();
   const data = climate.result?.data;
   function latest(id: VariableId) {
     const point = data?.series
@@ -32,17 +33,14 @@ export function DashboardPage() {
             <br />
             comienza con un lugar.
           </h2>
-          <p>
-            Conecta información climática y contexto territorial sin perder de vista sus límites.
-          </p>
-          <a className="button button-primary" href="#/climate-intelligence">
-            Explorar el clima <ArrowUpRight size={17} />
+          <p>Delimita una parcela y explora imágenes Sentinel-2 junto con contexto climático.</p>
+          <a className="button button-primary" href="#/rotation-studio">
+            Monitorear parcela <ArrowUpRight size={17} />
           </a>
         </div>
         <div className="hero-orbit" aria-hidden="true">
           <div className="orbit-inner">
-            <MapPin size={38} />
-            <span>HAILEX</span>
+            <img src="/logo-HaiLex.png" alt="" width="135" height="135" />
           </div>
         </div>
         <div className="hero-location">
@@ -122,10 +120,23 @@ export function DashboardPage() {
         </section>
         <section className="surface session-panel-v2">
           <p className="eyebrow">TU ESPACIO</p>
-          <h2>Todo por explorar.</h2>
+          <h2>Monitoreo de parcela</h2>
           <p>
-            No existe historial de análisis persistido. Inicia una consulta climática o explora la
-            ubicación.
+            {fieldGeometry
+              ? 'Polígono dibujado disponible en este navegador.'
+              : 'Aún no hay una parcela dibujada.'}
+          </p>
+          <p>
+            {fieldAnalysis?.acquired_at
+              ? `Última escena de esta sesión: ${fieldAnalysis.acquired_at} · ${fieldAnalysis.status}`
+              : 'Sin análisis satelital activo en esta sesión.'}
+          </p>
+          <a href="#/rotation-studio" className="text-link">
+            Abrir Parcel Monitoring →
+          </a>
+          <p>
+            Los resultados se guardan localmente en el backend; el análisis activo pertenece a esta
+            sesión.
           </p>
           <a href="#/earth-explorer" className="text-link">
             Abrir Earth Explorer →

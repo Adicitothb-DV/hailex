@@ -21,6 +21,32 @@ export interface Source {
 export interface SourceEntry extends Source {
   parameters: string[];
 }
+export type EvidenceStatus = 'verified_local' | 'documented_general' | 'provisional' | 'unknown';
+export interface CropAttribute {
+  name: string;
+  value: string | number | boolean | null;
+  unit: string | null;
+  source_refs: string[];
+  evidence_status: EvidenceStatus;
+  limitations: string[];
+}
+export interface Crop {
+  id: string;
+  common_name: string;
+  scientific_name: string | null;
+  botanical_family: string | null;
+  attributes: CropAttribute[];
+  identity_source_refs: Record<string, string[]>;
+  evidence_status: EvidenceStatus;
+  limitations: string[];
+}
+export interface CropCatalog {
+  catalog_version: string;
+  data_type: 'documented_reference' | 'simulation';
+  display_label: string | null;
+  crops: Crop[];
+  sources: Source[];
+}
 export interface Variable {
   id: string;
   source_id: string;

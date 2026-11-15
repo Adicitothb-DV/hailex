@@ -1,11 +1,15 @@
 # HaiLex Frontend (React + Vite + TypeScript)
 
+**Demo vigente:** Parcel Monitoring permite dibujar y analizar AOI; Agricultural Context
+presenta el libro local. Para instrucciones y límites, ver `docs/FINAL_DEMO_SCOPE.md`.
+Las secciones históricas siguientes no describen necesariamente la navegación actual.
+
 ## Frontend V2 — estado actual
 
 Cinco rutas por fragmento, drawer accesible, mapa vectorial y consulta climática real.
 El estado de ubicación y de la última consulta vive en memoria; se pierde al recargar.
-Dashboard, Earth Explorer y Climate Intelligence comparten el punto. Rotation Studio y
-Analysis & Insights son vistas preparatorias: catálogo, perfiles y motor siguen pendientes.
+Dashboard, Earth Explorer y Climate Intelligence comparten el punto. Rotation Studio
+muestra el catálogo del backend y un perfil editable en memoria; el motor sigue pendiente.
 
 Para ejecutar en Windows, inicia primero el backend siguiendo `backend/README.md` en el
 puerto 8000; en otra terminal, desde `frontend/`, ejecuta `npm.cmd ci` y `npm.cmd run dev`.
@@ -16,6 +20,9 @@ backend si usas otro origen del frontend. Health comprueba el proceso, no el pro
 
 - `GET /api/v1/health`, `GET /api/v1/sources` y `GET /api/v1/climate/series` usan los
   sobres y parámetros del backend; la consulta se realiza explícitamente al enviar el formulario.
+- `GET /api/v1/crops` alimenta la ficha de cultivo con evidencia, fuentes y faltantes;
+  el perfil es una declaración local de usuario y no se envía ni persiste. La referencia
+  cartográfica no es laboratorio; el contexto POWER corresponde al punto consultado.
 - Clima presenta las tres variables, unidades, tipo, resoluciones, conteos, advertencias y
   modo de recuperación; valores faltantes permanecen `null`. El periodo y los fixtures
   históricos se identifican; upstream no significa observación actual o medición en parcela.
@@ -23,7 +30,7 @@ backend si usas otro origen del frontend. Health comprueba el proceso, no el pro
   no verificado. Los puntos no delimitan parcelas. Sin solicitud automática de geolocalización.
 - MapLibre carga el estilo vectorial Liberty de OpenFreeMap con atribución OpenFreeMap,
   OpenMapTiles y OpenStreetMap; requiere red y tiene fallback con coordenadas manuales.
-- El indicador solar calcula elevación aproximada con hora UTC y coordenadas; no es pronóstico.
+- El indicador solar calcula elevación astronómica aproximada con hora UTC y coordenadas.
 - Dependencias nuevas: MapLibre GL JS (mapa), Recharts y `react-is` (gráficas), Lucide
   (iconos). Carga diferida por pantalla; el módulo de mapa sigue siendo grande.
 - Pruebas: `npm.cmd run typecheck`, `npm.cmd run lint`, `npm.cmd run format:check`,

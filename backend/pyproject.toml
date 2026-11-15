@@ -10,6 +10,10 @@ runtime = [
     "pandas==3.1.1",
     "numpy==2.5.4",
     "openpyxl==3.1.5",
+    "rasterio==1.5.2",
+    "shapely==2.2.0",
+    "pyproj==3.8.0",
+    "pillow==12.3.0",
 ]
 dev = [
     { include-group = "runtime" },

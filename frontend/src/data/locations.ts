@@ -7,7 +7,7 @@ export interface StudyLocation {
 // Municipal reference points documented in docs/DATA_SOURCES.md; source datum not verified.
 export const locations: StudyLocation[] = [
   {
-    label: 'La Cañada, El Marqués',
+    label: 'Villas del Marqués, El Marqués (referencia del equipo)',
     latitude: 20.60656972,
     longitude: -100.33109667,
     type: 'municipal_reference_point',

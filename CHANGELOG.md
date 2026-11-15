@@ -1,17 +1,34 @@
 # CHANGELOG.md
 
-## Fase 7D — análisis parcial, modelado bloqueado
-- Reporte descriptivo versionado; sin entrenar modelos ni generar pronósticos.
-- Utilidades estadísticas comprobadas con datos sintéticos; faltan deflactor y procedencia.
+## Demo de monitoreo — 2026-11-15
+
+- Dibujo con Terra Draw, validación AOI, búsqueda Earth Search Sentinel-2 L2A, lectura
+  COG por ventanas, RGB/NDVI/NDMI, SCL, estadísticas y reporte local JSON.
+- Consulta explícita de NASA POWER para contexto del AOI y vista de historial agrícola
+  del libro proporcionado sin mezclar precios ni inventar años ausentes.
+- Prueba real con escena del 14 de noviembre y evidencia en `frontend/evidence/`;
+  pruebas automatizadas y limitaciones descritas en `docs/FINAL_DEMO_SCOPE.md`.
+
+## Frontend — catálogo y perfil
+- Catálogo real con detalle y fuentes; perfil en memoria y contexto climático descriptivo.
+- Estados de carga, errores y faltantes; pruebas de navegador con backend local.
+
+## Fase 7 — catálogo y perfil de parcela
+- Catálogo local con evidencia por cultivo y endpoint `/api/v1/crops`.
+- Esquema de parcela con procedencia, validación y campos desconocidos explícitos.
 
 ## Fase 7C — clima histórico y panel agrícola
 - POWER histórico por punto y agregados por ventanas nacionales aproximadas SIAP.
-- Unión sin expansión de filas y trazabilidad; escenarios retrospectivos no predictivos.
+- Unión sin expansión de filas y trazabilidad del contexto histórico.
 
 ## Fase 7B — pipeline SIAP offline
 - Lectura XLSX con hash, observaciones normalizadas, controles y agregados provisionales.
 - Precios originales separados; siniestros preservados; sin interpolación ni modelos.
 - Dependencia de lectura XLSX openpyxl y pruebas sintéticas sin red.
+
+## Identidad visual — 2026-11-14
+- Logo PNG del equipo en Dashboard y la pestaña; hoja original en el menú. Cursor de
+  hoja ampliado con punto activo en la punta; hover sutil y respaldo nativo. PNG intactos.
 
 ## Frontend V2 — 2026-11-14 (America/Mexico_City)
 

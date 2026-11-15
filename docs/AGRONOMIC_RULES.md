@@ -1,6 +1,6 @@
 # AGRONOMIC_RULES.md — Investigación, no recomendaciones definitivas
 
-Consultado 2026-11-14. Catálogo cerrado y todavía no funcional: `maiz_forrajero`,
+Consultado 2026-11-14. Catálogo local provisional: `maiz_forrajero`,
 `alfalfa`, `cebada`, `sorgo`. No se asignan puntuaciones; cualquier criterio sin
 datos críticos debe ser `not_assessable`. Las secuencias requieren agronomía local.
 

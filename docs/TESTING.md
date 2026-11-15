@@ -1,12 +1,11 @@
 # TESTING.md — Plan y Registro de Pruebas
 
-## Precios Fase 7D — parcial
+## Catálogo y parcela — Fase 7
 
-Pruebas sintéticas de deflación, agregación ponderada, separación por año, benchmarks
-y métricas; no se evaluaron modelos con los datos reales. Comando desde backend:
-`python -m pytest -q`. Se conserva el bloqueo documental de datos críticos.
-Validación local: 79 pruebas aprobadas, Ruff check y formato correctos, `pip check`
-sin conflictos. No se probaron entrenamiento, intervalos ni escenarios de precio.
+Pruebas offline de fuentes resolubles, campos críticos desconocidos y procedencia del
+perfil. Comando desde backend: `python -m pytest -q`.
+Validación local: 79 pruebas aprobadas, Ruff check y formato correctos y `pip check`
+sin conflictos; catálogo inválido devuelve error en lugar de catálogo vacío.
 
 ## Clima Fase 7C
 

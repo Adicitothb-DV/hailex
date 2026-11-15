@@ -1,18 +1,39 @@
 # PROJECT_STATUS.md — Estado Actual del Proyecto
 
-## Fase 7D — parcial, modelos bloqueados
+## Demo de monitoreo — 2026-11-15 (estado actual)
 
-- Análisis descriptivo versionado y controles estadísticos básicos; sin backtesting,
-  pronósticos, intervalos ni validación de modelos por falta de datos críticos.
-- `Precio` y `Preciomediorural` conservan procedencia separada. INPP específico,
-  unidades y fechas históricas de disponibilidad aún pendientes.
+- Prototipo local con dibujo/edición de polígono en Parcel Monitoring, validación geodésica,
+  búsqueda STAC, RGB/NDVI/NDMI, máscara SCL y reporte JSON; Climate Intelligence conserva
+  NASA POWER y el reporte permite solicitar contexto para los 30 días previos a la escena.
+- Prueba real: `S2B_14QLH_20261114_0_L2A`, 2026-11-14; polígono de prueba
+  no identificado como propiedad. En navegador: NDVI 196 píxeles y NDMI 49, cobertura
+  válida 100 % para ambos; nubes de escena 15.99 %. Datos y capas no son mediciones de campo.
+- Agricultural Context consulta el libro local: 155 filas, 2 pérdidas totales, brecha
+  2015–2020; precios y procedencias permanecen separados, sin pronóstico confiable.
+- Pruebas: 86 backend, Ruff, typecheck, lint, formato, build y navegador V2/monitoreo.
+- Limitaciones importantes: no hay comparación temporal, polígonos automáticos de zonas,
+  selección histórica sin acceso STAC, cache con limpieza/TTL, proveedor CDSE ni auditoría
+  formal de accesibilidad. Las anomalías de offset de Earth Search requieren cautela.
+- Los apartados siguientes registran fases anteriores y no sustituyen este estado.
+
+## Frontend — catálogo y parcela
+
+- Rotation Studio consume el catálogo, muestra evidencia y permite declarar un perfil
+  temporal; presenta el contexto de la última consulta NASA con sus límites.
+- Build, lint y pruebas de navegador correctos; el perfil no se persiste ni se envía.
+
+## Fase 7 — catálogo y perfil
+
+- `GET /api/v1/crops` sirve el catálogo local con fuentes y estado provisional; el
+  esquema de parcela conserva origen y validación. No se persisten parcelas.
+- INEGI es contexto cartográfico, no laboratorio; NASA POWER aporta contexto climático.
 
 ## Fase 7C — panel climático histórico
 
 - POWER 2003–2024 para ambos puntos y fixtures 2025; 16 802 filas diarias, 151 ventanas
   agrícolas y 155 observaciones SIAP unidas sin expansión. 143 ventanas completas y 8
   incompletas. Ventanas nacionales aproximadas, sin fases fenológicas locales.
-- Sin anomalías 1991–2020, modelos ni pronósticos; escenarios son terciles retrospectivos.
+- Sin anomalías 1991–2020; las estadísticas históricas son contexto descriptivo.
 
 ## Fase 7B — pipeline SIAP offline
 
@@ -21,6 +42,10 @@
   por producción cero, sin rechazos. Brecha 2015–2020; precio de siniestros indefinido.
 - Agregados colapsados provisionales; diccionario, unidades monetarias y procedencia
   de `Precio` aún no verificados. No modelos, consulta NASA ni nuevos endpoints.
+
+- Identidad visual: logo PNG aportado por el equipo en Dashboard y favicon; menú con hoja
+  original; cursor de hoja a 64 × 64 con punto activo en la punta y alternativa nativa. Los PNG originales
+  se conservan en `frontend/public/`. Revisión visual manual adicional recomendada.
 
 ## Frontend V2 — 2026-11-14 (hora de México)
 

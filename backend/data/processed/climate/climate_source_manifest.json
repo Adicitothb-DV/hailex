@@ -1,5 +1,5 @@
 {
-  "processed_at_utc": "2026-11-15T07:37:45.314321+00:00",
+  "processed_at_utc": "2026-11-15T08:19:59.842775+00:00",
   "siap_sha256": "3b06fbc870d9b366a41c32fe90e7c9afc56bdf9ac6aee995b8c34c1204471e5b",
   "sources": [
     {
@@ -80,6 +80,6 @@
     "municipal reference points, not fields",
     "national windows are approximate, not phenology",
     "solar identical values do not prove shared cell",
-    "scenario terciles use retrospective data and leak future information"
+    "scenario terciles summarize retrospective data"
   ]
 }

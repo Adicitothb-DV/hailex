@@ -1,5 +1,10 @@
 # HaiLex
 
+> **Demo actual (2026-11-15):** monitoreo de parcela con Sentinel-2 L2A, contexto
+> NASA POWER y libro agrícola local. Ver `C:\Users\Alex\Downloads\hailex\docs\FINAL_DEMO_SCOPE.md`
+> para ejecución, alcance comprobado y limitaciones. El texto histórico inferior sobre
+> comparación de rotaciones describe objetivos anteriores, no funcionalidad disponible.
+
 **Plataforma de apoyo a decisiones agrícolas basada en observaciones terrestres de NASA e información agronómica local.**
 
 Desarrollado para **NASA Space Apps Challenge 2026 (Sede Querétaro)** — Reto: *Field Shift: Adapting Farms with NASA Data*.

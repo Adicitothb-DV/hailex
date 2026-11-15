@@ -1,11 +1,11 @@
 # DATA_SOURCES.md — Fuentes y procedencia de HaiLex
 
-## Fase 7D — deflactor pendiente
+## Fase 7 — fuentes de catálogo y parcela
 
-INEGI publica INPP (https://www.inegi.org.mx/programas/inpp/), índice productor mensual;
-identificar y archivar la serie agrícola específica comparable por producto y sus bases,
-empalmes y fecha de publicación sigue pendiente. INPC general solo sería sensibilidad,
-no sustitución automática. No se descargó serie verificada ni se calculó precio real.
+El catálogo local referencia el consolidado aportado, FAO y DOF por campo. Su procedencia
+original SIAP y la revisión local siguen pendientes. Los campos de suelo cartográfico
+exigen referencia y estado; no se consulta ni se asigna una clase INEGI automáticamente.
+NASA POWER es contexto climático descriptivo con fuente y fecha de recuperación.
 
 ## Fase 7C: POWER y ventanas agrícolas
 
@@ -35,13 +35,15 @@ El consolidado no contiene 2015–2020; no se recuperaron ni interpolaron esos a
 
 Investigación consultada el **14 de noviembre de 2026** (hora de México). `planned`
 significa sin integración de producto; una consulta o fixture no implementa un servicio.
-El usuario confirmó en Fase 6 conservar La Cañada como referencia municipal de El Marqués.
+Actualización del equipo: en la interfaz se usa Villas del Marqués para el punto de
+referencia. La documentación previa identifica las mismas coordenadas como La Cañada;
+esta discrepancia sigue sin resolución independiente y no se alteraron payloads históricos.
 
 ## Puntos oficiales independientes
 
 | Región | ID de punto | Lugar | Latitud, longitud en grados decimales | Estado |
 |---|---|---|---|---|
-| `el_marques_queretaro` | `el_marques_reference_point` | La Cañada, cabecera de El Marqués | 20.60656972, -100.33109667 | verificado como cabecera |
+| `el_marques_queretaro` | `el_marques_reference_point` | Villas del Marqués (etiqueta del equipo; fuente previa: La Cañada) | 20.60656972, -100.33109667 | discrepancia de nombre pendiente |
 | `colon_queretaro` | `colon_reference_point` | Colón, cabecera de Colón | 20.78832639, -100.04543056 | verificado como cabecera |
 
 Tipo: `municipal_reference_point`; país México, estado Querétaro. Gobierno de

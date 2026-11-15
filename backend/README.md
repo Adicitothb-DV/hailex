@@ -1,5 +1,18 @@
 # HaiLex Backend (FastAPI)
 
+**Demo vigente:** endpoints de parcela y contexto agrícola, instalación, limitaciones y
+ejecución con un worker documentados en `docs/FINAL_DEMO_SCOPE.md`. El contenido siguiente
+registra funcionalidades y fases históricas.
+
+## Catálogo y parcela
+
+`GET /api/v1/crops` devuelve el catálogo JSON local con evidencias y limitaciones;
+los requerimientos locales desconocidos permanecen null. `app.schemas.crops.ParcelProfile`
+define el perfil con procedencia y validación; no almacena ni georreferencia parcelas.
+INEGI, cuando se aporte como referencia cartográfica, no es análisis de laboratorio.
+NASA POWER se consulta por el endpoint climático existente para contexto descriptivo,
+con fecha, fuente y limitaciones; no se consulta al pedir el catálogo.
+
 ## Pipeline climático histórico — Fase 7C
 
 Desde `C:\Users\Alex\Downloads\hailex\backend`:
@@ -21,8 +34,8 @@ siembra PV: se utiliza marzo de la página de calendario, con incertidumbre hist
 sin fechas locales ni fases fenológicas. Los periodos incompletos no generan agregados
 totales. Temperaturas mínimas y máximas son extremos de medias diarias, no T2M_MIN/MAX.
 Precipitación diaria >=1 mm y rachas <1 mm siguen Climdex; terciles retrospectivos con
-al menos 10 periodos completos son exploratorios, no pronósticos y filtran futuro si se
-usan para entrenar. No se calculan anomalías 1991–2020 ni escenarios climáticos futuros.
+al menos 10 periodos completos resumen el contexto histórico. No se calculan anomalías
+1991–2020. NASA POWER se usa como contexto descriptivo, no para anticipar el clima.
 
 ## Pipeline SIAP offline — Fase 7B
 

@@ -1,9 +1,14 @@
 # PROJECT_CONTEXT.md — Contexto Vivo de HaiLex
 
-## Fase 7D — análisis parcial y bloqueo de modelos
+**Alcance vigente (2026-11-15):** demo local de monitoreo con Sentinel-2, NASA POWER
+y contexto agrícola; consultar `docs/FINAL_DEMO_SCOPE.md`. El contenido inferior registra
+fases históricas y el motor de comparación de rotaciones continúa pospuesto.
 
-- Análisis descriptivo versionado por municipio/cultivo/ciclo/modalidad; sin series
-  reales ni entrenamiento mientras falten deflactor verificable y procedencia/unidades.
+## Fase 7 — catálogo y perfil
+
+- Catálogo local con fuentes y atributos desconocidos; perfil de parcela con procedencia.
+- POWER proporciona contexto climático descriptivo; los valores cartográficos no son
+  análisis de laboratorio. El motor de comparación permanece pendiente.
 
 ## Pipeline SIAP — Fase 7B
 
@@ -16,8 +21,8 @@
 
 - Navegación de cinco vistas, estado compartido de punto y consulta, mapa vectorial MapLibre
   y series NASA POWER mediante el backend. Fuentes y health no garantizan disponibilidad NASA.
-- Rotaciones y análisis siguen en preparación: catálogo Fase 7 y motor Fase 8 no implementados.
-- Contrato canónico `docs/API_CONTRACT.md`; implementación real limitada a health, sources y clima.
+- Rotaciones y análisis siguen en preparación; catálogo Fase 7 disponible, motor pendiente.
+- Contrato canónico `docs/API_CONTRACT.md`; health, sources, clima y crops implementados.
 
 - **Proyecto:** HaiLex
 - **Evento:** NASA Space Apps Challenge 2026 — Sede Querétaro (14–15 de noviembre de 2026)
@@ -26,7 +31,7 @@
   - **Laptop 1 (Backend + Datos NASA):** Integrante 1 (Líder técnico, API, integración, Git) + Integrante 2 (NASA POWER, normalización, fixtures).
   - **Laptop 2 (Frontend + Agronomía/QA):** Integrante 3 (React, MapLibre, Recharts, UI) + Integrante 4 (Catálogo cultivos/suelos Querétaro-Bajío, reglas, validación, pitch).
 - **Módulos:** Dashboard, Earth Explorer, Climate Intelligence, Rotation Studio, Analysis & Insights + Procedencia transversal.
-- **Endpoints canónicos V1:** implementados `GET /api/v1/health`, `GET /api/v1/climate/series`, `GET /api/v1/sources`; pendientes `GET /api/v1/crops` y `POST /api/v1/rotations/compare`. Fuente de verdad: `docs/API_CONTRACT.md`.
+- **Endpoints canónicos V1:** implementados `GET /api/v1/health`, `GET /api/v1/climate/series`, `GET /api/v1/sources`, `GET /api/v1/crops`; pendiente `POST /api/v1/rotations/compare`. Fuente de verdad: `docs/API_CONTRACT.md`.
 - **Fase 5:** base FastAPI ejecutable, Swagger/OpenAPI, configuración Pydantic Settings, CORS local, errores uniformes, X-Request-ID/logging y pruebas. Sin integración frontend todavía.
 - **Pilotos y datos:** El Marqués (La Cañada) y Colón (Colón), puntos municipales independientes; catálogo limitado a maíz forrajero, alfalfa, cebada y sorgo. POWER histórico 2025 recuperado por separado, no en vivo; ver `docs/DATA_SOURCES.md` y `docs/AGRONOMIC_RULES.md`. Información gubernamental del equipo pendiente de incorporación.
 - **Fase 6:** clima y fuentes implementados con POWER AG/UTC, normalización, caché y snapshots en memoria; fixtures históricos exactos solo como respaldo informado. Un worker; no hay comparación ni catálogo funcional.

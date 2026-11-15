@@ -1,3 +1,89 @@
+.catalog-section,
+.parcel-panel,
+.climate-context {
+  margin-block: 24px;
+}
+.monitor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 12px;
+}
+.monitoring-result {
+  margin-top: 24px;
+}
+.geojson-display {
+  max-height: 180px;
+  overflow: auto;
+  font-size: 0.75rem;
+}
+.agriculture-table-wrap {
+  overflow-x: auto;
+}
+.agriculture-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.agriculture-table th,
+.agriculture-table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--border-soft);
+  text-align: left;
+  white-space: nowrap;
+}
+.crop-list,
+.parcel-grid,
+.crop-attributes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 12px;
+}
+.crop-choice,
+.crop-attributes > div {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--bg-card-light);
+  text-align: left;
+}
+.crop-choice.selected {
+  border-color: var(--focus-ring);
+  box-shadow: inset 0 0 0 1px var(--focus-ring);
+}
+.crop-choice strong,
+.crop-choice small,
+.crop-attributes strong,
+.crop-attributes span,
+.crop-attributes small,
+.crop-source strong,
+.crop-source small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.crop-choice small,
+.crop-attributes small,
+.crop-source small {
+  margin-top: 6px;
+  color: var(--text-secondary-dark);
+}
+.crop-detail {
+  margin-top: 20px;
+}
+.crop-source {
+  padding-block: 10px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.parcel-grid {
+  margin-block: 20px;
+}
+.parcel-panel textarea {
+  width: 100%;
+  resize: vertical;
+}
+
 :root {
   --bg-app-base: #eef3ed;
   --bg-sidebar: #2a4b3a;
@@ -24,6 +110,15 @@
 }
 :focus-visible {
   outline-color: var(--focus-ring);
+}
+html {
+  cursor: var(--hailex-cursor-default, auto);
+}
+a,
+button:not(:disabled),
+select:not(:disabled),
+[role='button']:not([aria-disabled='true']) {
+  cursor: var(--hailex-cursor-pointer, pointer);
 }
 .v2-shell {
   min-height: 100svh;
@@ -75,7 +170,7 @@
   background: var(--bg-card-light);
   min-width: 42px;
   min-height: 42px;
-  cursor: pointer;
+  cursor: var(--hailex-cursor-pointer, pointer);
 }
 .menu-trigger:hover,
 .icon-button:hover {
@@ -87,7 +182,7 @@
   border-radius: 99px;
   padding: 8px 12px;
   font-size: 12px;
-  cursor: pointer;
+  cursor: var(--hailex-cursor-pointer, pointer);
   white-space: nowrap;
 }
 .connection-dot {
@@ -239,7 +334,7 @@
   gap: 8px;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  cursor: pointer;
+  cursor: var(--hailex-cursor-pointer, pointer);
   transition:
     transform var(--duration-fast) var(--ease-emphasized),
     background var(--duration-fast);
@@ -338,16 +433,17 @@
   width: 135px;
   height: 135px;
   border-radius: 50%;
-  background: rgba(220, 229, 111, 0.16);
+  background: var(--bg-card-light);
   display: grid;
   place-content: center;
   justify-items: center;
   gap: 10px;
   color: var(--color-accent);
 }
-.orbit-inner span {
-  font-size: 10px;
-  letter-spacing: 0.2em;
+.orbit-inner img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 .hero-location {
   grid-column: 1 / -1;
@@ -703,7 +799,13 @@
     grid-template-columns: 1fr;
   }
   .hero-orbit {
-    display: none;
+    width: 135px;
+    height: 135px;
+    box-shadow: 0 0 0 12px rgba(255, 255, 255, 0.035);
+  }
+  .orbit-inner {
+    width: 100px;
+    height: 100px;
   }
   .metric-grid,
   .dashboard-bottom,
@@ -726,6 +828,26 @@
     padding: 26px 20px;
   }
 }
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .menu-trigger,
+  .icon-button,
+  .connection,
+  .v2-drawer .primary-nav a,
+  .quick-links a {
+    transition:
+      transform var(--duration-fast) var(--ease-emphasized),
+      background-color var(--duration-fast);
+  }
+  .menu-trigger:hover,
+  .icon-button:hover,
+  .connection:hover,
+  .v2-drawer .primary-nav a:hover,
+  .quick-links a:hover {
+    transform: scale(1.015);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -733,5 +855,8 @@
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
+  }
+  .button:hover {
+    transform: none;
   }
 }
