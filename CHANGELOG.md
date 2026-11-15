@@ -1,5 +1,12 @@
 # CHANGELOG.md
 
+## Perfil agrícola local — 2026-11-15
+
+- Añadido formulario opcional de perfil en Agricultural Context, guardado local versionado,
+  eliminación confirmada y prueba de navegador para guardar, recargar, editar y eliminar.
+- Sin integración de modelos ni asesor conversacional; ver limitaciones en PROJECT_STATUS.md.
+- Comprobados build, lint y prueba aislada del perfil; el entorno Python no está operativo.
+
 ## AgroAlert NASA — trabajo en curso — 2026-11-15
 
 - Importada la colección municipal fuente y añadida la generación de grilla recortada

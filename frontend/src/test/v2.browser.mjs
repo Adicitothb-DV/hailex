@@ -164,6 +164,41 @@ try {
   assert.equal(await evaluate("Boolean(document.querySelector('.provenance'))"), true);
   console.log('PASS Colón climate and state invalidation');
   await evaluate("location.hash='#/analysis-insights'");
+  await waitFor("Boolean(document.querySelector('[name=profile-name]'))");
+  await evaluate(`(() => {
+    const input = document.querySelector('[name=profile-name]');
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, 'Perfil de prueba');
+    input.dispatchEvent(new Event('input', {bubbles: true}));
+  })()`);
+  await waitFor("document.querySelector('[name=profile-name]')?.value === 'Perfil de prueba'");
+  await evaluate("document.querySelector('.agricultural-profile form').requestSubmit()");
+  await waitFor(
+    "document.querySelector('.agricultural-profile [role=status]')?.textContent.includes('guardado')",
+  );
+  await send('Page.reload');
+  await waitFor("document.querySelector('[name=profile-name]')?.value === 'Perfil de prueba'");
+  await evaluate(`(() => {
+    const input = document.querySelector('[name=profile-name]');
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, 'Perfil editado');
+    input.dispatchEvent(new Event('input', {bubbles: true}));
+  })()`);
+  await waitFor("document.querySelector('[name=profile-name]')?.value === 'Perfil editado'");
+  await evaluate("document.querySelector('.agricultural-profile form').requestSubmit()");
+  await waitFor(
+    "document.querySelector('.agricultural-profile [role=status]')?.textContent.includes('guardado')",
+  );
+  assert.equal(
+    await evaluate(
+      "JSON.parse(localStorage.getItem('hailex-agricultural-profile-v1')).profile.name",
+    ),
+    'Perfil editado',
+  );
+  await send('Page.enable');
+  await evaluate(
+    "window.confirm = () => true; document.querySelector('.agricultural-profile button[type=button]').click()",
+  );
+  assert.equal(await evaluate("localStorage.getItem('hailex-agricultural-profile-v1')"), null);
+  console.log('PASS profile save, reload, edit and confirmed deletion');
   await waitFor("Boolean(document.querySelector('.agriculture-table tbody tr'))");
   assert.ok(
     (await evaluate('document.body.innerText')).includes('2015, 2016, 2017, 2018, 2019, 2020'),

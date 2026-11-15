@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { PageHeading } from '../../components/PageHeading';
 import { api } from '../../services/api';
 import type { AgricultureData } from '../../types/monitoring';
+import { AgriculturalProfile } from './AgriculturalProfile';
 
 const format = (value: number | null) =>
   value === null ? 'No disponible' : value.toLocaleString('es-MX', { maximumFractionDigits: 2 });
@@ -42,6 +43,7 @@ export function AnalysisInsightsPage() {
         title="Agricultural Context"
         description="Consulta el libro consolidado proporcionado por el equipo. Sus registros son municipales, no mediciones de la parcela."
       />
+      <AgriculturalProfile />
       <section className="surface">
         <div className="parcel-grid">
           <label className="field">

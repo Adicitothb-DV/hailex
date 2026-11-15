@@ -1,5 +1,17 @@
 # PROJECT_STATUS.md — Estado Actual del Proyecto
 
+## Perfil agrícola local — 2026-11-15
+
+- Agricultural Context incluye un perfil opcional editable y versionado en localStorage,
+  con eliminación confirmada y sin modificar geometrías ni análisis existentes.
+- No existe asesor conversacional, endpoint Groq, investigación de precios ni conexión del
+  perfil con otras fuentes. AGENTS.md prohíbe llamadas a LLM en ejecución. Los resultados
+  satelitales archivados son análisis, no un registro estable de múltiples parcelas.
+- Verificados build/typecheck y lint frontend, formato de los archivos modificados y prueba
+  aislada de navegador (guardar, recargar, editar y eliminar). El formato global señala
+  `src/test/agroalert.browser.mjs` preexistente; pytest/Ruff no ejecutaron: el `.venv`
+  apunta a un Python inexistente de otro usuario y Python local carece de dependencias.
+
 ## AgroAlert NASA — integración en curso — 2026-11-15
 
 - Se importó la colección GeoJSON original y se inició el cálculo de celdas recortadas.

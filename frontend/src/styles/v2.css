@@ -13,6 +13,14 @@
 .monitoring-result {
   margin-top: 24px;
 }
+.agricultural-profile {
+  margin-bottom: 24px;
+}
+.agricultural-profile textarea {
+  width: 100%;
+  min-height: 80px;
+  resize: vertical;
+}
 .geojson-display {
   max-height: 180px;
   overflow: auto;
