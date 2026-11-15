@@ -2,9 +2,9 @@
 
 ## Estado
 
-Fase 5 implementa la base FastAPI: health, OpenAPI/Swagger, configuración, CORS,
-errores uniformes, request ID, logging seguro y 24 pruebas locales.
-No existen cliente NASA, catálogo, snapshots ni motor de rotaciones. No se incluyen datos demo.
+Fase 6 incorpora cliente NASA POWER, clima, fuentes, caché y snapshots en memoria,
+además de health, OpenAPI/Swagger, configuración, CORS, errores uniformes y logging.
+Catálogo y motor de rotaciones no están implementados. No se incluyen datos demo.
 El contrato compartido está en `C:\Users\Alex\Downloads\hailex\docs\API_CONTRACT.md`.
 
 ## Requisitos y decisiones
@@ -22,8 +22,8 @@ El contrato compartido está en `C:\Users\Alex\Downloads\hailex\docs\API_CONTRAC
 
 Dependencias de ejecución: FastAPI y Uvicorn (API/ASGI), Pydantic v2 y Pydantic Settings
 (validación/configuración), HTTPX (NASA), Pandas y NumPy (series y cálculos del MVP).
-Desarrollo: Pytest y Ruff. Pandas/NumPy/HTTPX quedan preparados para fases posteriores;
-su presencia no significa integración climática ni reglas agronómicas implementadas.
+Desarrollo: Pytest y Ruff. HTTPX consulta POWER; Pandas/NumPy están disponibles para
+fases posteriores y su presencia no implica reglas agronómicas implementadas.
 
 ## Preparación en PowerShell
 
@@ -75,7 +75,7 @@ Ejecutar desde `C:\Users\Alex\Downloads\hailex\backend`:
 & '.\.venv\Scripts\python.exe' -B -m pytest -p no:cacheprovider
 ```
 
-La suite de Fase 5 contiene 24 pruebas sin servicios externos. Utiliza
+La suite incluye regresión foundation y pruebas climáticas sin servicios externos. Utiliza
 HTTPX ASGITransport y asyncio, no TestClient ni paquetes nuevos. Validación obligatoria:
 
 ```powershell
@@ -92,7 +92,7 @@ Sin activar el entorno (recomendado si PowerShell bloquea scripts):
 
 ```powershell
 Set-Location 'C:\Users\Alex\Downloads\hailex\backend'
-& '.\.venv\Scripts\python.exe' -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+& '.\.venv\Scripts\python.exe' -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1
 ```
 
 También puede activar el entorno en una terminal autorizada:
@@ -110,7 +110,8 @@ use el ejecutable explícito del ejemplo anterior.
 - Swagger: `http://127.0.0.1:8000/docs`.
 - OpenAPI: `http://127.0.0.1:8000/openapi.json`.
 - Versión del servicio `0.1.0`, contrato `1.0.0`; health solo comprueba la aplicación.
-- No hay alias `/health`; clima, crops, sources y compare todavía devuelven 404.
+- Clima: `http://127.0.0.1:8000/api/v1/climate/series?latitude=20.60656972&longitude=-100.33109667&start_date=2025-01-01&end_date=2025-12-31`.
+- Fuentes: `http://127.0.0.1:8000/api/v1/sources`. No hay alias `/health`; crops y compare aún devuelven 404.
 
 ## Variables de entorno y seguridad
 
@@ -123,8 +124,11 @@ de entorno prevalecen. No se creó `.env` ni se necesita para ejecutar valores l
 | APP_ENV | development/test/production, desarrollo por defecto; debug HTTP siempre desactivado. |
 | APP_PORT | Entero 1..65535, default 8000; validado pero Uvicorn CLI requiere `--port` explícito para cambiarlo. |
 | CORS_ORIGINS | CSV de orígenes HTTP(S) sin ruta, credenciales ni wildcard; default localhost:5173 y 127.0.0.1:5173. |
-| NASA_POWER_BASE_URL | Reservada para Fase 6; no se utiliza en esta fase. |
-| NASA_POWER_TIMEOUT_SECONDS | Reservada para Fase 6; no se utiliza en esta fase. |
+| NASA_POWER_BASE_URL | Solo endpoint HTTPS oficial Daily Point; por defecto la URL oficial. |
+| NASA_POWER_TIMEOUT_SECONDS | Timeout HTTPX positivo; default 15 segundos. |
+| CLIMATE_CACHE_TTL_SECONDS | TTL de caché por defecto 1800 segundos, independiente del snapshot. |
+| CLIMATE_CACHE_MAX_ENTRIES | Límite de entradas de caché, por defecto 128. |
+| CLIMATE_SNAPSHOT_MAX_ENTRIES | Máximo de snapshots activos, por defecto 1024; saturación devuelve 503. |
 
 CORS permite GET/POST y preflight OPTIONS, Content-Type, sin credenciales. Expone
 X-Request-ID para lectura por frontend. Nuevos orígenes requieren configuración explícita;
@@ -145,3 +149,19 @@ arquitectura y pruebas en `C:\Users\Alex\Downloads\hailex\docs`.
 
 `.venv`, `.env` y cachés están excluidos por las reglas Git del repositorio.
 Versionar `pyproject.toml` y `requirements.lock`, nunca el entorno ni credenciales.
+
+## Clima, procedencia y almacenamiento temporal
+
+La ruta acepta cualquier latitud/longitud válida y fechas ISO no futuras hasta 366 días
+inclusivos. Solicita `T2M` (`C`), `PRECTOTCORR` (`mm/day`) y `ALLSKY_SFC_SW_DWN`
+(`MJ/m^2/day`), AG y UTC. Normaliza sentinel declarado y fechas ausentes a null,
+conserva ceros y negativos válidos y devuelve conteos y límites por variable. La resolución
+meteorológica es 0.5° × 0.625°; radiación 1° × 1°. Son productos regionales modelados o
+estimados, no mediciones de parcela.
+
+Cada respuesta crea snapshot inmutable de 30 minutos; se pierde al reiniciar. Cache hit
+crea otro ID y conserva `retrieved_at`. Sin Redis, base de datos ni workers múltiples.
+Si falla NASA, se usa un fixture real únicamente para las coordenadas y el año 2025
+exactos de los dos puntos archivados; se identifica `historical_fixture` y se advierte
+el fallo. No hay sustitución automática por datos simulados ni fixture para otros rangos.
+No se necesita API key. Los timestamps se expresan en UTC.

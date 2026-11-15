@@ -1,5 +1,19 @@
 # TESTING.md — Plan y Registro de Pruebas
 
+## Registro Fase 6 — 14 de noviembre de 2026
+
+Suite sin red con HTTPX MockTransport y ASGITransport: cliente, errores, normalización,
+validación, concurrencia, TTL, snapshots, fixtures y regresión. Validación final mediante
+`python -m pytest -q`, `ruff check app tests`, `ruff format --check app tests` y `pip check`.
+
+Smoke real con Uvicorn y un worker: health, `/docs`, `/openapi.json`, `/api/v1/sources`
+y `/api/v1/climate/series` devolvieron HTTP 200. El 2026-11-15T01:41Z se consultaron
+ambos puntos para 2025: 365 válidos por variable, cero faltantes y series idénticas a
+sus respectivos fixtures; repeticiones desde caché. Para 2026-10-01..07, ambos puntos:
+7 valores válidos temperatura y precipitación, 0 válidos/7 faltantes de radiación,
+advertidos; recuperación upstream. El proceso temporal se detuvo. La prueba de fase 5
+que enumeraba solo health se actualizó para incluir exactamente las nuevas rutas.
+
 ## Registro Fase 4 — 14 de noviembre de 2026
 
 Desde el backend: Pytest **24 passed**, Ruff check correcto y formato correcto en

@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## Fase 6 - 2026-11-14 (America/Mexico_City)
+- Cliente HTTPX asíncrono, normalizador POWER AG/UTC, rutas climática y fuentes, errores sanitizados, caché y snapshots en memoria con único worker.
+- Respaldo histórico real solo para coordenadas y periodo exactos, con aviso y fecha original; sin modificar payloads ni crear datos simulados.
+- Consultas reales a ambos municipios, pruebas offline y regresión documentadas en `docs/TESTING.md`. Se conserva La Cañada para El Marqués por confirmación del usuario.
+- Siguiente: Fase 7, catálogo/perfil de suelo y fuentes gubernamentales; motor sigue pendiente.
+
 ## Fase 4 - 2026-11-14 (America/Mexico_City)
 - **Investigación:** dos municipios oficiales y cuatro cultivos; referencias municipales INEGI, fuentes SIAP en fichas estatales, contexto agronómico y secuencias pendientes de revisión local.
 - **NASA:** dos consultas independientes de 2025, HTTP 200; dos payloads históricos originales y manifiestos; sin cliente, endpoint ni normalizador de producción. Se documentan unidades, resolución, sentinel y limitaciones.

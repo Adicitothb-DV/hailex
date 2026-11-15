@@ -14,6 +14,7 @@ from app.core.middleware import (
     RequestContextMiddleware,
 )
 from app.schemas.common import ErrorResponse
+from app.services.climate import ClimateService
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -33,6 +34,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         },
     )
     application.state.settings = settings
+    application.state.climate_service = ClimateService(settings)
     application.add_exception_handler(HTTPException, http_error_handler)
     application.add_exception_handler(RequestValidationError, validation_error_handler)
     application.include_router(router)

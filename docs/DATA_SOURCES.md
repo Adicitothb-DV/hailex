@@ -2,6 +2,7 @@
 
 Investigación consultada el **14 de noviembre de 2026** (hora de México). `planned`
 significa sin integración de producto; una consulta o fixture no implementa un servicio.
+El usuario confirmó en Fase 6 conservar La Cañada como referencia municipal de El Marqués.
 
 ## Puntos oficiales independientes
 
@@ -26,7 +27,7 @@ Ninguno es parcela agrícola ni caracteriza automáticamente todo el municipio.
 
 ## NASA POWER Daily Point: datos históricos reales, no en vivo
 
-Integración de cliente, endpoint y normalizador: `planned` (Fase 6). Fuente: NASA POWER,
+Integración de cliente, endpoint y normalizador: `implemented` (Fase 6). Fuente: NASA POWER,
 Daily API, sin fecha de recurso; consultada 2026-11-14:
 https://power.larc.nasa.gov/docs/services/api/temporal/daily/ ; tutorial:
 https://power.larc.nasa.gov/docs/tutorials/service-data-request/api/ ; metodología:
@@ -71,7 +72,15 @@ Los datos originales pueden incluir el sentinel: no se modifica el payload.
 Para Fase 6: conservar cero; convertir a null solo sentinel confirmado en cada respuesta,
 verificar `-999` por producto; no tratar todos los números negativos como ausentes;
 rechazar NaN/Infinity, ordenar y comprobar unicidad de fechas y contar válidos/faltantes
-por parámetro. No se implementa aquí.
+por parámetro. Implementado en Fase 6; la caché y los fixtures conservan recuperación original.
+
+El 2026-11-15 UTC se consultaron ambos puntos mediante el servicio para 2025: las tres
+series coincidieron con cada fixture correspondiente. Para 2026-10-01 a 2026-10-07,
+ambos puntos devolvieron temperatura y precipitación completas y radiación sin valores
+válidos; se muestran siete null y aviso, no se rellenan. No implica un fallo del proveedor.
+La geometría POWER de los fixtures expresa el punto devuelto redondeado, no identifica
+inequívocamente el polígono de la celda solar. Coincidencia de las 365 cifras solares y
+resolución 1° son hechos comprobados; celda compartida es posible, no demostrada.
 
 ## Referencias territoriales, agrícolas y cartográficas
 
