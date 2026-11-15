@@ -1,0 +1,17 @@
+{
+  "panel_sha256": "54eae591d1f9539f0d1c9e6523386f3656239908095b41be142213ee5b358a34",
+  "siap_manifest_sha256": "190b41cbaae82b50d77e097afe9d7e2f8b111b437bc2ff5cf71d88478569f234",
+  "climate_manifest_sha256": "ca0114eaefcca89c6290929941a83c3ca17ff4ab9b55dd96d728ce352dc59611",
+  "deflator": {
+    "status": "unavailable_unverified",
+    "candidate": "INEGI INPP appropriate agricultural class; INPC sensitivity only",
+    "base_year": null,
+    "frequency": "monthly; annual aggregation unresolved"
+  },
+  "predictors": {
+    "prices": "raw units unverified; source fields separated",
+    "production": "annual SIAP, publication date unknown; lag only after validation",
+    "climate": "POWER daily aggregated by approximate agricultural cycle, window may extend beyond label year; availability must be enforced",
+    "scenario_labels": "retrospective future leakage; prohibited for model input"
+  }
+}

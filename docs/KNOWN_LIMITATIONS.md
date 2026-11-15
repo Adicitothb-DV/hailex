@@ -1,5 +1,13 @@
 # KNOWN_LIMITATIONS.md — Limitaciones Conocidas
 
+## Precios Fase 7D
+
+- El análisis es descriptivo parcial: no se entrenaron ni evaluaron modelos. No hay
+  métricas de backtest, pronósticos, escenarios de precios ni intervalos.
+- Las unidades y procedencia del consolidado no están verificadas; deflactor INEGI,
+  disponibilidad histórica por fecha y vintages pendientes. No comparar fuentes como
+  si fueran equivalentes. No usar terciles climáticos retrospectivos como predictores.
+
 ## Clima Fase 7C
 
 - Ventanas nacionales aproximadas, con discrepancia de inicio PV entre fuentes SIAP;

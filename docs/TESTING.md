@@ -1,5 +1,13 @@
 # TESTING.md — Plan y Registro de Pruebas
 
+## Precios Fase 7D — parcial
+
+Pruebas sintéticas de deflación, agregación ponderada, separación por año, benchmarks
+y métricas; no se evaluaron modelos con los datos reales. Comando desde backend:
+`python -m pytest -q`. Se conserva el bloqueo documental de datos críticos.
+Validación local: 79 pruebas aprobadas, Ruff check y formato correctos, `pip check`
+sin conflictos. No se probaron entrenamiento, intervalos ni escenarios de precio.
+
 ## Clima Fase 7C
 
 La suite agrega pruebas offline de UTC, unidades, periodos transanuales, alfalfa,

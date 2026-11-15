@@ -1,5 +1,12 @@
 # DATA_SOURCES.md — Fuentes y procedencia de HaiLex
 
+## Fase 7D — deflactor pendiente
+
+INEGI publica INPP (https://www.inegi.org.mx/programas/inpp/), índice productor mensual;
+identificar y archivar la serie agrícola específica comparable por producto y sus bases,
+empalmes y fecha de publicación sigue pendiente. INPC general solo sería sensibilidad,
+no sustitución automática. No se descargó serie verificada ni se calculó precio real.
+
 ## Fase 7C: POWER y ventanas agrícolas
 
 Dos solicitudes secuenciales POWER Daily Point AG/UTC, 2003-01-01 a 2024-12-31;

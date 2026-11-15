@@ -1,5 +1,10 @@
 # PROJECT_CONTEXT.md — Contexto Vivo de HaiLex
 
+## Fase 7D — análisis parcial y bloqueo de modelos
+
+- Análisis descriptivo versionado por municipio/cultivo/ciclo/modalidad; sin series
+  reales ni entrenamiento mientras falten deflactor verificable y procedencia/unidades.
+
 ## Pipeline SIAP — Fase 7B
 
 - Ingesta offline reproducible del XLSX entregado, con originales, huella y calidad;

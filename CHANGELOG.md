@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## Fase 7D — análisis parcial, modelado bloqueado
+- Reporte descriptivo versionado; sin entrenar modelos ni generar pronósticos.
+- Utilidades estadísticas comprobadas con datos sintéticos; faltan deflactor y procedencia.
+
 ## Fase 7C — clima histórico y panel agrícola
 - POWER histórico por punto y agregados por ventanas nacionales aproximadas SIAP.
 - Unión sin expansión de filas y trazabilidad; escenarios retrospectivos no predictivos.

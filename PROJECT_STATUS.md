@@ -1,5 +1,12 @@
 # PROJECT_STATUS.md — Estado Actual del Proyecto
 
+## Fase 7D — parcial, modelos bloqueados
+
+- Análisis descriptivo versionado y controles estadísticos básicos; sin backtesting,
+  pronósticos, intervalos ni validación de modelos por falta de datos críticos.
+- `Precio` y `Preciomediorural` conservan procedencia separada. INPP específico,
+  unidades y fechas históricas de disponibilidad aún pendientes.
+
 ## Fase 7C — panel climático histórico
 
 - POWER 2003–2024 para ambos puntos y fixtures 2025; 16 802 filas diarias, 151 ventanas
