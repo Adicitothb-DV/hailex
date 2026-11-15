@@ -7,6 +7,7 @@ export const navigation = [
     description: 'Clima y observaciones',
   },
   { id: 'rotation-studio', label: 'Parcel Monitoring', description: 'Monitoreo de parcela' },
+  { id: 'pest-monitor', label: 'Monitor fitosanitario', description: 'Plagas y escenarios' },
   { id: 'analysis-insights', label: 'Asesor Agrícola', description: 'Perfil y rotación' },
 ] as const;
 

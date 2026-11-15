@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { AppProvider } from './app/AppContext';
+import './i18n';
 import './styles/globals.css';
 import './styles/v2.css';
 

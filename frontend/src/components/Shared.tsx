@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { ClimateSeries, Envelope } from '../types/api';
+import { useTranslation } from 'react-i18next';
 
 export function StatusBadge({
   children,
@@ -10,21 +11,23 @@ export function StatusBadge({
 }) {
   return <span className={`status-badge badge-${variant}`}>{children}</span>;
 }
-export function LoadingState({ children = 'Cargando…' }: { children?: ReactNode }) {
+export function LoadingState({ children }: { children?: ReactNode }) {
+  const { t } = useTranslation();
   return (
     <p className="state-message" role="status">
-      {children}
+      {children ?? t('loading')}
     </p>
   );
 }
 export function ErrorState({ message, retry }: { message: string; retry?: () => void }) {
+  const { t } = useTranslation();
   return (
     <div className="notice error-state" role="alert">
-      <strong>No se pudo completar la consulta.</strong>
+      <strong>{t('requestFailed')}</strong>
       <p>{message}</p>
       {retry && (
         <button type="button" className="button button-secondary" onClick={retry}>
-          Reintentar
+          {t('retry')}
         </button>
       )}
     </div>
@@ -39,14 +42,15 @@ export function EmptyState({ title, children }: { title: string; children: React
   );
 }
 export function DataProvenancePanel({ result }: { result: Envelope<ClimateSeries> }) {
+  const { t } = useTranslation();
   const { data, warnings } = result;
   const mode = data.retrieval.retrieval_mode;
   return (
     <section className="surface provenance" aria-labelledby="provenance-title">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">TRANSPARENCIA</p>
-          <h2 id="provenance-title">Procedencia y límites</h2>
+          <p className="eyebrow">{t('transparency')}</p>
+          <h2 id="provenance-title">{t('provenanceLimits')}</h2>
         </div>
         <StatusBadge
           variant={
@@ -58,68 +62,58 @@ export function DataProvenancePanel({ result }: { result: Envelope<ClimateSeries
           }
         >
           {mode === 'historical_fixture'
-            ? 'Respaldo histórico'
+            ? t('historicalFallback')
             : mode === 'demo_fixture'
-              ? 'SIMULADO'
+              ? t('simulated')
               : mode === 'cache'
-                ? 'Caché'
-                : 'Proveedor upstream'}
+                ? t('cache')
+                : t('upstream')}
         </StatusBadge>
       </div>
-      {mode === 'historical_fixture' && (
-        <p className="notice">
-          Datos históricos archivados, no una consulta en vivo. Se conserva la fecha de recuperación
-          original.
-        </p>
-      )}
-      {mode === 'demo_fixture' && (
-        <p className="notice">SIMULADO · Estos datos no son observaciones reales.</p>
-      )}
+      {mode === 'historical_fixture' && <p className="notice">{t('historicalFallbackNote')}</p>}
+      {mode === 'demo_fixture' && <p className="notice">{t('simulatedNote')}</p>}
       {data.period.end_date < new Date().toISOString().slice(0, 10) && (
-        <p className="fine-print">
-          Periodo histórico: los datos corresponden a las fechas consultadas, no a condiciones
-          actuales.
-        </p>
+        <p className="fine-print">{t('historicalPeriodNote')}</p>
       )}
       <dl className="provenance-grid">
         <div>
-          <dt>Fuente</dt>
+          <dt>{t('source')}</dt>
           <dd>
             {data.source.organization} · {data.source.product}
           </dd>
         </div>
         <div>
-          <dt>Comunidad / tiempo</dt>
+          <dt>{t('communityTime')}</dt>
           <dd>
             {data.community} · {data.time_standard}
           </dd>
         </div>
         <div>
-          <dt>Coordenadas consultadas</dt>
+          <dt>{t('queriedCoordinates')}</dt>
           <dd>
             {data.location.latitude}, {data.location.longitude}
           </dd>
         </div>
         <div>
-          <dt>Periodo</dt>
+          <dt>{t('period')}</dt>
           <dd>
             {data.period.start_date} — {data.period.end_date}
           </dd>
         </div>
         <div>
-          <dt>Recuperado</dt>
-          <dd>{data.retrieval.retrieved_at ?? 'No disponible'}</dd>
+          <dt>{t('retrieved')}</dt>
+          <dd>{data.retrieval.retrieved_at ?? t('notAvailable')}</dd>
         </div>
         <div>
-          <dt>Servido</dt>
+          <dt>{t('served')}</dt>
           <dd>{data.retrieval.served_at}</dd>
         </div>
         <div>
-          <dt>Modo</dt>
+          <dt>{t('mode')}</dt>
           <dd>{mode}</dd>
         </div>
         <div>
-          <dt>Normalizador</dt>
+          <dt>{t('normalizer')}</dt>
           <dd>{data.normalizer_version}</dd>
         </div>
       </dl>

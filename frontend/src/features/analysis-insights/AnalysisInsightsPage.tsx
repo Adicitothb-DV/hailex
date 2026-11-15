@@ -3,7 +3,6 @@ import { PageHeading } from '../../components/PageHeading';
 import { api } from '../../services/api';
 import type { RotationComparison, SavedAnalysis } from '../../types/monitoring';
 import { AgriculturalProfile } from './AgriculturalProfile';
-import { AdvisorChat } from './AdvisorChat';
 
 const crops = [
   ['maiz_forrajero', 'Maíz forrajero en verde'],
@@ -24,6 +23,14 @@ export function AnalysisInsightsPage() {
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState('');
   const requestVersion = useRef(0);
+
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent('hailex-lex-context', {
+        detail: { region, crop: previous, water, analysisId },
+      }),
+    );
+  }, [region, previous, water, analysisId]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -243,7 +250,13 @@ export function AnalysisInsightsPage() {
           </div>
         )}
       </section>
-      <AdvisorChat region={region} crop={previous} water={water} analysisId={analysisId} />
+      <button
+        className="button button-primary"
+        type="button"
+        onClick={() => window.dispatchEvent(new Event('hailex-open-lex'))}
+      >
+        Consultar a Lex
+      </button>
     </>
   );
 }

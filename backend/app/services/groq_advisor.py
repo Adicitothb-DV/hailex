@@ -1,13 +1,14 @@
 """Groq chat integration: no tools, writes, automatic model fallback or secret logging."""
 
 import json
+import re
 
 import httpx
 from pydantic import ValidationError
 
 from app.core.config import Settings
-from app.schemas.advisor import AdvisorAnswer
-from app.services.advisor_prompt import SYSTEM_PROMPT
+from app.schemas.advisor import AdvisorAnswer, AdvisorTurn
+from app.services.advisor_prompt import prompt_for_locale
 
 MODEL = "openai/gpt-oss-120b"
 URL = "https://api.groq.com/openai/v1/chat/completions"
@@ -20,7 +21,13 @@ class AdvisorError(Exception):
 
 
 async def generate(
-    settings: Settings, message: str, context: dict, transport=None
+    settings: Settings,
+    message: str,
+    context: dict,
+    transport=None,
+    *,
+    history: list[AdvisorTurn] | None = None,
+    locale: str = "es-MX",
 ) -> AdvisorAnswer:
     key = settings.groq_api_key.get_secret_value().strip()
     if not key:
@@ -56,11 +63,17 @@ async def generate(
     payload = {
         "model": MODEL,
         "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": prompt_for_locale(locale)},
             {
                 "role": "user",
                 "content": json.dumps(
-                    {"question": message, "evidence": context}, ensure_ascii=False, allow_nan=False
+                    {
+                        "question": message,
+                        "previous_conversation": [turn.model_dump() for turn in (history or [])],
+                        "evidence": context,
+                    },
+                    ensure_ascii=False,
+                    allow_nan=False,
                 ),
             },
         ],
@@ -112,9 +125,39 @@ async def generate(
         content = choice["message"]["content"]
         if not isinstance(content, str) or len(content) > 20000:
             raise ValueError("invalid content")
-        answer = AdvisorAnswer.model_validate_json(content)
         if key in content:
             raise ValueError("credential in response")
+        parsed = json.loads(content)
+        if not isinstance(parsed, dict):
+            raise ValueError("invalid response object")
+        for field, maximum in (("actions", 8), ("limitations", 8), ("follow_up_questions", 4)):
+            if isinstance(parsed.get(field), list):
+                parsed[field] = parsed[field][:maximum]
+        answer = AdvisorAnswer.model_validate(parsed)
+        research = context.get("web_research")
+        if (
+            isinstance(research, dict)
+            and research.get("mode") != "local_only"
+            and not research.get("price_independently_corroborated", False)
+        ):
+            monetary = re.compile(
+                r"(?i)(?:\$\s*\d|\b(?:mxn|usd)\s*\d|\d[\d,.]*\s*(?:mxn|usd|pesos?|d[oó]lares?)\b)"
+            )
+            if any(
+                monetary.search(value)
+                for value in (
+                    answer.conclusion,
+                    answer.interpretation,
+                    *answer.actions,
+                    *answer.limitations,
+                    *answer.follow_up_questions,
+                )
+            ):
+                raise AdvisorError(
+                    "web_price_unverified",
+                    422,
+                    "No hay evidencia suficiente para verificar ese precio. Consulta las fuentes antes de usarlo.",
+                )
         if any(
             len(item) > 1200
             for group in (answer.actions, answer.limitations, answer.follow_up_questions)

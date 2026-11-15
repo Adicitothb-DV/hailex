@@ -26,6 +26,16 @@ class Settings(BaseSettings):
     groq_api_key: SecretStr = SecretStr("")
     groq_timeout_seconds: float = Field(default=60, gt=0, le=120, allow_inf_nan=False)
     groq_max_completion_tokens: int = Field(default=1600, ge=128, le=4000)
+    fish_audio_api_key: SecretStr = SecretStr("")
+    fish_audio_reference_id: str = Field(
+        default="d85aae3c4f4d4c70860997c27554f533", pattern=r"^[a-f0-9]{32}$"
+    )
+    fish_audio_reference_id_en: str = Field(
+        default="79d0bd3e4e5444b18f7b6d89b5927bf1", pattern=r"^[a-f0-9]{32}$"
+    )
+    fish_audio_model: Literal["s2.1-pro-free", "s2-pro", "s1"] = "s2.1-pro-free"
+    lex_voice_enabled: bool = True
+    lex_web_research_enabled: bool = True
     climate_cache_ttl_seconds: int = Field(default=1800, ge=1, le=86400)
     climate_cache_max_entries: int = Field(default=128, ge=1, le=4096)
     climate_snapshot_max_entries: int = Field(default=1024, ge=1, le=10000)

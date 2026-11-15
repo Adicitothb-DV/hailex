@@ -17,14 +17,18 @@
     "test:ui": "node src/test/v2.browser.mjs",
     "test:monitoring": "node src/test/monitoring.browser.mjs",
     "test:ui:v1": "node src/test/shell.browser.mjs",
+    "test:i18n": "node src/test/i18n.mjs",
+    "test:preferences": "node src/test/preferences.browser.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "i18next": "^27.1.2",
     "lucide-react": "1.73.0",
     "maplibre-gl": "6.18.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "react-i18next": "^18.0.1",
     "react-is": "19.3.1",
     "recharts": "3.10.1",
     "terra-draw": "1.39.0",

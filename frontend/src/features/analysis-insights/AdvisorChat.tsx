@@ -1,8 +1,20 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { api } from '../../services/api';
 import type { AdvisorResponse } from '../../types/monitoring';
+import { LexVoice } from './LexVoice';
+import { useTranslation } from 'react-i18next';
+import { validLocale, type AppLocale, DEFAULT_LOCALE } from '../../i18n';
 
-type Props = { region: string; crop: string; water: string; analysisId: string };
+type Props = {
+  region: string;
+  crop: string;
+  water: string;
+  analysisId: string;
+  active: boolean;
+  activeAnalysisId: string;
+  voiceCommand: { id: number; text: string } | null;
+};
+type Exchange = { question: string; response: AdvisorResponse; locale?: AppLocale };
 type Profile = {
   municipality: string;
   locality: string;
@@ -45,76 +57,282 @@ function readProfile(): Profile | null {
   }
 }
 
-export function AdvisorChat({ region, crop, water, analysisId }: Props) {
+export function AdvisorChat({
+  region,
+  crop,
+  water,
+  analysisId,
+  active,
+  activeAnalysisId,
+  voiceCommand,
+}: Props) {
+  const { i18n, t } = useTranslation();
   const [message, setMessage] = useState('');
   const [profile, setProfile] = useState(true);
   const [siap, setSiap] = useState(true);
   const [climate, setClimate] = useState(true);
   const [moisture, setMoisture] = useState(true);
   const [satellite, setSatellite] = useState(true);
+  const [web, setWeb] = useState(true);
+  const [autoVoice, setAutoVoice] = useState(true);
+  const [latestVoice, setLatestVoice] = useState<{
+    id: number;
+    text: string;
+    locale: AppLocale;
+  } | null>(null);
+  const voiceSequence = useRef(0);
+  const showAnswer = useRef(false);
+  const [useActiveAnalysis, setUseActiveAnalysis] = useState(false);
   const [consent, setConsent] = useState(false);
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState('');
-  const [result, setResult] = useState<AdvisorResponse | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const clearAudio = () => {
+      showAnswer.current = true;
+      setLatestVoice(null);
+      setStatus((previous) => (previous === 'audio' ? 'success' : previous));
+    };
+    window.addEventListener('hailex-close-lex', clearAudio);
+    return () => window.removeEventListener('hailex-close-lex', clearAudio);
+  }, []);
+  useEffect(() => {
+    if (!voiceCommand) return;
+    const input = inputRef.current;
+    if (!input) return;
+    const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set;
+    setter?.call(input, voiceCommand.text);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.focus();
+  }, [voiceCommand]);
+  const [conversation, setConversation] = useState<Exchange[]>(() => {
+    try {
+      const raw = sessionStorage.getItem('hailex-lex-session-v1');
+      if (raw) {
+        const parsed: unknown = JSON.parse(raw);
+        if (
+          Array.isArray(parsed) &&
+          parsed.every(
+            (item) =>
+              item &&
+              typeof item === 'object' &&
+              typeof item.question === 'string' &&
+              item.response &&
+              typeof item.response === 'object' &&
+              item.response.answer &&
+              typeof item.response.answer.conclusion === 'string',
+          )
+        )
+          return parsed as Exchange[];
+      }
+    } catch {
+      /* Storage is optional. */
+    }
+    return [];
+  });
+  function persist(exchanges: Exchange[]) {
+    setConversation(exchanges);
+    try {
+      sessionStorage.setItem('hailex-lex-session-v1', JSON.stringify(exchanges.slice(-20)));
+    } catch {
+      /* Storage is optional. */
+    }
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!message.trim() || !consent) return;
+    const question = message.trim();
+    showAnswer.current = false;
+    const turnLocale = validLocale(i18n.language) ? i18n.language : DEFAULT_LOCALE;
+    setLatestVoice(null);
+    window.dispatchEvent(new Event('hailex-stop-voice'));
     setStatus('loading');
     setError('');
-    setResult(null);
     try {
+      const history = conversation.slice(-2).flatMap(({ question: previous, response }) => [
+        { role: 'user', content: previous },
+        {
+          role: 'assistant',
+          content:
+            [
+              response.answer.conclusion,
+              response.answer.interpretation,
+              ...response.answer.actions,
+              ...response.answer.limitations,
+              ...response.answer.follow_up_questions,
+            ]
+              .filter(Boolean)
+              .join('\n')
+              .slice(0, 2000) || 'Sin respuesta.',
+        },
+      ]);
       const response = await api.advisorChat({
-        message: message.trim(),
+        message: question,
+        locale: turnLocale,
+        history,
         region: region || null,
         crop: crop || null,
         water_regime: water,
-        analysis_id: satellite && analysisId ? analysisId : null,
+        analysis_id: satellite ? (useActiveAnalysis ? activeAnalysisId : analysisId) || null : null,
         profile: profile ? readProfile() : null,
         include_siap: siap,
         include_climate: climate,
         include_moisture: moisture,
         include_satellite: satellite,
+        include_web: web,
       });
-      setResult(response.data);
-      setStatus('success');
+      persist([...conversation, { question, response: response.data, locale: turnLocale }]);
+      const answer = response.data.answer;
+      const speakAnswer = autoVoice && !showAnswer.current;
+      if (speakAnswer) {
+        setStatus('audio');
+        setLatestVoice({
+          id: ++voiceSequence.current,
+          locale: turnLocale,
+          text: [
+            answer.conclusion,
+            answer.interpretation,
+            ...answer.actions,
+            ...answer.limitations,
+            ...answer.follow_up_questions,
+          ]
+            .filter(Boolean)
+            .join(' '),
+        });
+      }
+      setMessage('');
+      if (!speakAnswer) setStatus('success');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo consultar al asesor.');
+      setError(err instanceof Error ? err.message : t('lexError'));
       setStatus('error');
     }
   }
   return (
     <section className="surface advisor-chat">
-      <h2>Consulta al asesor</h2>
-      <p>
-        Describe tu problema o pega una lista. La IA es apoyo informativo, no sustituye una visita
-        técnica.
-      </p>
+      <h2>{t('lexTitle')}</h2>
+      <p>{t('lexIntro')}</p>
+      <p>{t('lexPrivacy')}</p>
+      <p>{t('lexVoicePrivacy')}</p>
+      {conversation.length > 0 && (
+        <div className="advisor-conversation" aria-live="polite" aria-label={t('lexConversation')}>
+          {conversation.map(({ question, response }, index) => (
+            <div className="advisor-exchange" key={index}>
+              <div className="advisor-user-message">
+                <strong>{t('lexYou')}</strong>
+                <p>{question}</p>
+              </div>
+              {!(status === 'audio' && index === conversation.length - 1) && (
+                <article className="advisor-response">
+                  <strong className="advisor-response-label">{t('lexAdvisor')}</strong>
+                  <p className="advisor-conclusion">{response.answer.conclusion}</p>
+                  {response.answer.interpretation && <p>{response.answer.interpretation}</p>}
+                  {response.answer.actions.length > 0 && (
+                    <div className="advisor-section">
+                      <h3>{t('lexActions')}</h3>
+                      <ul>
+                        {response.answer.actions.map((item, i) => (
+                          <li key={i}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {response.answer.limitations.length > 0 && (
+                    <div className="advisor-section advisor-limitations">
+                      <h3>{t('lexLimitations')}</h3>
+                      <ul>
+                        {response.answer.limitations.map((item, i) => (
+                          <li key={i}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {response.answer.follow_up_questions.length > 0 && (
+                    <div className="advisor-section">
+                      <h3>{t('lexFollowUp')}</h3>
+                      <ul>
+                        {response.answer.follow_up_questions.map((item, i) => (
+                          <li key={i}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {response.context.web_research != null &&
+                    typeof response.context.web_research === 'object' &&
+                    'status' in response.context.web_research && (
+                      <p>
+                        {t('lexResearch', { status: String(response.context.web_research.status) })}
+                      </p>
+                    )}
+                  {response.context.web_research != null &&
+                    typeof response.context.web_research === 'object' &&
+                    'sources' in response.context.web_research &&
+                    Array.isArray(response.context.web_research.sources) &&
+                    response.context.web_research.sources.map((source: unknown, i: number) => {
+                      if (
+                        !source ||
+                        typeof source !== 'object' ||
+                        !('url' in source) ||
+                        typeof source.url !== 'string' ||
+                        !/^https?:\/\//i.test(source.url)
+                      )
+                        return null;
+                      return (
+                        <p key={i}>
+                          <a href={source.url} target="_blank" rel="noopener noreferrer">
+                            {'title' in source && typeof source.title === 'string'
+                              ? source.title
+                              : t('lexReference')}
+                          </a>{' '}
+                          ·{' '}
+                          {t(
+                            'verification_status' in source &&
+                              source.verification_status === 'source_accessed_unverified'
+                              ? 'lexSourceAccessed'
+                              : 'lexUnverified',
+                          )}
+                        </p>
+                      );
+                    })}
+                  <details>
+                    <summary>{t('lexProvenance')}</summary>
+                    <pre className="advisor-context">
+                      {JSON.stringify(response.context, null, 2)}
+                    </pre>
+                  </details>
+                </article>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
       <form onSubmit={submit}>
         <label className="field">
-          Tu consulta
+          {t(conversation.length ? 'lexReply' : 'lexQuestion')}
           <textarea
+            ref={inputRef}
             required
             maxLength={4000}
-            rows={5}
+            rows={3}
+            disabled={status === 'loading'}
             value={message}
             onChange={(event) => setMessage(event.target.value)}
           />
         </label>
         <fieldset>
-          <legend>Contexto a compartir</legend>
+          <legend>{t('lexContext')}</legend>
           <label>
             <input
               type="checkbox"
               checked={profile}
               onChange={(e) => setProfile(e.target.checked)}
             />{' '}
-            Perfil guardado (sin nombre)
+            {t('lexProfile')}
           </label>
           {' · '}
           <label>
             <input type="checkbox" checked={siap} onChange={(e) => setSiap(e.target.checked)} />{' '}
-            SIAP local
+            {t('lexSiap')}
           </label>
           {' · '}
           <label>
@@ -123,7 +341,7 @@ export function AdvisorChat({ region, crop, water, analysisId }: Props) {
               checked={climate}
               onChange={(e) => setClimate(e.target.checked)}
             />{' '}
-            NASA clima
+            {t('lexClimate')}
           </label>
           {' · '}
           <label>
@@ -132,7 +350,7 @@ export function AdvisorChat({ region, crop, water, analysisId }: Props) {
               checked={moisture}
               onChange={(e) => setMoisture(e.target.checked)}
             />{' '}
-            NASA humedad
+            {t('lexMoisture')}
           </label>
           {' · '}
           <label>
@@ -141,27 +359,60 @@ export function AdvisorChat({ region, crop, water, analysisId }: Props) {
               checked={satellite}
               onChange={(e) => setSatellite(e.target.checked)}
             />{' '}
-            Análisis satelital
+            {t('lexSatellite')}
           </label>
+          {' · '}
+          <label>
+            <input type="checkbox" checked={web} onChange={(e) => setWeb(e.target.checked)} />{' '}
+            {t('lexWeb')}
+          </label>
+          {activeAnalysisId && (
+            <label>
+              <input
+                type="checkbox"
+                checked={useActiveAnalysis}
+                onChange={(e) => setUseActiveAnalysis(e.target.checked)}
+              />{' '}
+              {t('lexActive', { id: activeAnalysisId.slice(0, 8) })}
+            </label>
+          )}
         </fieldset>
         <p>
-          Selección anterior: {region || 'municipio no registrado'} ·{' '}
-          {crop || 'cultivo no registrado'} ·{' '}
-          {water === 'unknown'
-            ? 'modalidad desconocida'
-            : water === 'rainfed'
-              ? 'temporal'
-              : 'riego'}{' '}
-          ·{' '}
-          {analysisId && satellite
-            ? `análisis ${analysisId.slice(0, 8)}`
-            : 'sin análisis satelital'}
-          .
+          {t('lexPriorSelection', {
+            region: region || t('lexNoMunicipality'),
+            crop: crop || t('lexNoCrop'),
+            water: t(
+              water === 'unknown'
+                ? 'lexUnknownWater'
+                : water === 'rainfed'
+                  ? 'lexRainfed'
+                  : 'lexIrrigated',
+            ),
+            analysis:
+              (useActiveAnalysis ? activeAnalysisId : analysisId) && satellite
+                ? t('lexAnalysis', {
+                    id: (useActiveAnalysis ? activeAnalysisId : analysisId).slice(0, 8),
+                  })
+                : t('lexNoAnalysis'),
+          })}
         </p>
-        <p>
-          La pregunta y los datos seleccionados salen del equipo y se procesan con Groq. No incluyas
-          datos personales sensibles. No se consultan precios actuales en la web.
-        </p>
+        <p>{t('lexSharing')}</p>
+        <label>
+          <input
+            type="checkbox"
+            checked={autoVoice}
+            onChange={(e) => {
+              setAutoVoice(e.target.checked);
+              if (!e.target.checked) {
+                showAnswer.current = true;
+                setLatestVoice(null);
+                window.dispatchEvent(new Event('hailex-stop-voice'));
+                setStatus((previous) => (previous === 'audio' ? 'success' : previous));
+              }
+            }}
+          />{' '}
+          {t('lexAutoVoice')}
+        </label>
         <label>
           <input
             type="checkbox"
@@ -169,62 +420,66 @@ export function AdvisorChat({ region, crop, water, analysisId }: Props) {
             checked={consent}
             onChange={(e) => setConsent(e.target.checked)}
           />{' '}
-          Acepto enviar esta consulta y el contexto seleccionado a Groq.
+          {t('lexConsent')}
         </label>
         <div className="monitor-actions">
-          <button className="button button-primary" disabled={status === 'loading'}>
-            Consultar al asesor
+          <button
+            className="button button-primary"
+            disabled={status === 'loading' || status === 'audio'}
+          >
+            {t(conversation.length ? 'lexSendReply' : 'lexSend')}
           </button>
+          {conversation.length > 0 && (
+            <button
+              className="button button-secondary"
+              type="button"
+              disabled={status === 'loading' || status === 'audio'}
+              onClick={() => {
+                if (window.confirm(t('lexConfirmNew'))) {
+                  persist([]);
+                  setMessage('');
+                  setError('');
+                  setLatestVoice(null);
+                  window.dispatchEvent(new Event('hailex-stop-voice'));
+                }
+              }}
+            >
+              {t('lexNew')}
+            </button>
+          )}
         </div>
       </form>
-      {status === 'loading' && <p role="status">Consultando fuentes seleccionadas y analizando…</p>}
-      {error && <p role="alert">{error}</p>}
-      {result && (
-        <div aria-live="polite">
-          <h3>Conclusión</h3>
-          <p>{result.answer.conclusion}</p>
-          <h3>Interpretación</h3>
-          <p>{result.answer.interpretation}</p>
-          {result.answer.actions.length > 0 && (
-            <>
-              <h3>Qué revisar primero</h3>
-              <ul>
-                {result.answer.actions.map((item, index) => (
-                  <li key={index}>{item}</li>
-                ))}
-              </ul>
-            </>
-          )}
-          {result.answer.limitations.length > 0 && (
-            <>
-              <h3>Limitaciones</h3>
-              <ul>
-                {result.answer.limitations.map((item, index) => (
-                  <li key={index}>{item}</li>
-                ))}
-              </ul>
-            </>
-          )}
-          {result.answer.follow_up_questions.length > 0 && (
-            <>
-              <h3>Información que ayudaría</h3>
-              <ul>
-                {result.answer.follow_up_questions.map((item, index) => (
-                  <li key={index}>{item}</li>
-                ))}
-              </ul>
-            </>
-          )}
-          <p>
-            <strong>Pronóstico:</strong> no confiable; sin modelo validado. La respuesta puede
-            contener errores: verifica cifras y recomendaciones.
-          </p>
-          <details>
-            <summary>Ver datos y procedencia usados</summary>
-            <pre className="advisor-context">{JSON.stringify(result.context, null, 2)}</pre>
-          </details>
-        </div>
+      {status === 'loading' && <p role="status">{t('lexLoading')}</p>}
+      {status === 'audio' && <p role="status">{t('lexPreparingSync')}</p>}
+      {latestVoice && latestVoice.text.length > 1800 && status !== 'audio' && (
+        <p>{t('voiceTruncated')}</p>
       )}
+      {error && <p role="alert">{error}</p>}
+      {active && (
+        <LexVoice
+          active={active}
+          onTranscript={(text) =>
+            setMessage(text.replace(/^(?:oye|hola|ayudame|ayúdame)?\s*lex[\s,.:!?]*/i, ''))
+          }
+          autoRequest={latestVoice}
+          onAutoReady={() => setStatus((previous) => (previous === 'audio' ? 'success' : previous))}
+          textLocale={
+            conversation[conversation.length - 1]?.locale ??
+            (validLocale(i18n.language) ? i18n.language : DEFAULT_LOCALE)
+          }
+          text={
+            conversation.length
+              ? [
+                  conversation[conversation.length - 1]?.response.answer.conclusion,
+                  conversation[conversation.length - 1]?.response.answer.interpretation,
+                ]
+                  .filter(Boolean)
+                  .join(' ')
+              : ''
+          }
+        />
+      )}
+      <p className="advisor-disclaimer">{t('lexDisclaimer')}</p>
     </section>
   );
 }

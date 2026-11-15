@@ -6,10 +6,12 @@ import { useApp } from '../../app/AppContext';
 import { LocationSelect } from '../../components/LocationSelect';
 import { PageHeading } from '../../components/PageHeading';
 import { StatusBadge } from '../../components/Shared';
+import { useTranslation } from 'react-i18next';
 
 maplibregl.setWorkerUrl(workerUrl);
 
 export function EarthExplorerPage() {
+  const { t } = useTranslation();
   const { location, setLocation } = useApp();
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -76,7 +78,7 @@ export function EarthExplorerPage() {
       Math.abs(latitude) > 90 ||
       Math.abs(longitude) > 180
     ) {
-      setError('Introduce latitud entre -90 y 90 y longitud entre -180 y 180.');
+      setError('coordinateValidation');
       return;
     }
     setError('');
@@ -85,45 +87,37 @@ export function EarthExplorerPage() {
   return (
     <>
       <PageHeading
-        eyebrow="CONTEXTO GEOESPACIAL"
-        title="Earth Explorer"
-        description="Selecciona un punto para explorar el contexto climático. No representa una parcela medida."
+        eyebrow={t('geoContext')}
+        title={t('earth-explorer')}
+        description={t('geoDescription')}
       />
       <div className="explorer-v2">
         <section className="map-card">
           <div className="map-heading">
             <div>
-              <p className="eyebrow">PUNTO DE ESTUDIO</p>
-              <h2>Explora el territorio</h2>
+              <p className="eyebrow">{t('studyPoint')}</p>
+              <h2>{t('exploreTerritory')}</h2>
             </div>
-            <StatusBadge variant="info">Mapa vectorial</StatusBadge>
+            <StatusBadge variant="info">{t('vectorMap')}</StatusBadge>
           </div>
           <div className="map-wrap">
-            <div
-              ref={container}
-              className="map-canvas"
-              aria-label="Mapa de selección de ubicación. También puedes introducir coordenadas manualmente."
-            />
+            <div ref={container} className="map-canvas" aria-label={t('mapAccessible')} />
             {mapStatus === 'loading' && (
               <div className="map-overlay" role="status">
-                Cargando mapa…
+                {t('mapLoading')}
               </div>
             )}
             {mapStatus === 'error' && (
               <div className="map-warning" role="status">
-                Mapa o recurso cartográfico no disponible. Puedes introducir coordenadas
-                manualmente.
+                {t('mapUnavailable')}
               </div>
             )}
           </div>
-          <p className="map-caption">
-            Haz clic en el mapa para seleccionar un punto. Cartografía: OpenFreeMap y OpenStreetMap;
-            atribución completa dentro del mapa. No son imágenes satelitales.
-          </p>
+          <p className="map-caption">{t('mapCaption')}</p>
         </section>
         <aside className="surface location-panel">
-          <p className="eyebrow">UBICACIÓN ACTIVA</p>
-          <h2>Detalles del punto</h2>
+          <p className="eyebrow">{t('activeLocation')}</p>
+          <h2>{t('pointDetails')}</h2>
           <LocationSelect />
           <form
             key={`${location.latitude},${location.longitude}`}
@@ -131,7 +125,7 @@ export function EarthExplorerPage() {
             className="coordinate-form"
           >
             <label className="field">
-              Latitud
+              {t('latitude')}
               <input
                 name="latitude"
                 type="number"
@@ -143,7 +137,7 @@ export function EarthExplorerPage() {
               />
             </label>
             <label className="field">
-              Longitud
+              {t('longitude')}
               <input
                 name="longitude"
                 type="number"
@@ -154,29 +148,26 @@ export function EarthExplorerPage() {
                 required
               />
             </label>
-            {error && <p role="alert">{error}</p>}
+            {error && <p role="alert">{t(error)}</p>}
             <button className="button button-primary" type="submit">
-              Usar coordenadas
+              {t('useCoordinates')}
             </button>
           </form>
           <dl className="detail-list">
             <div>
-              <dt>Tipo</dt>
-              <dd>{location.type === 'custom' ? 'Punto personalizado' : 'Referencia municipal'}</dd>
+              <dt>{t('type')}</dt>
+              <dd>{t(location.type === 'custom' ? 'customPoint' : 'municipalReference')}</dd>
             </div>
             <div>
-              <dt>Marcador</dt>
-              <dd>Ubicación seleccionada</dd>
+              <dt>{t('marker')}</dt>
+              <dd>{t('selectedLocation')}</dd>
             </div>
             <div>
-              <dt>Capas científicas</dt>
-              <dd>No integradas</dd>
+              <dt>{t('scientificLayers')}</dt>
+              <dd>{t('notIntegrated')}</dd>
             </div>
           </dl>
-          <p className="fine-print">
-            Las cabeceras son referencias municipales, no parcelas. El datum de las coordenadas de
-            origen no está verificado.
-          </p>
+          <p className="fine-print">{t('municipalDisclaimer')}</p>
         </aside>
       </div>
     </>

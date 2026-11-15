@@ -1,5 +1,112 @@
 # PROJECT_STATUS.md — Estado Actual del Proyecto
 
+## Monitor fitosanitario — 2026-11-15
+
+- Vista nueva de HaiLex para El Marqués y Colón: localidades ilustrativas, filtro de cultivo,
+  simulador, mapa MapLibre, capas base y exportación CSV. Índices del prototipo sin validación
+  científica: no probabilidades ni diagnósticos; faltantes producen `not_assessable`.
+- Clima NASA POWER sujeto a disponibilidad, siete días completos para lluvia y GWETTOP como
+  índice superficial. Los límites son copia local, no linderos legales; el botón recarga, no
+  sincroniza límites externos. No se ha validado el catálogo ni el resultado agronómico.
+- QA: 160 pruebas backend, Ruff, build, lint y paridad i18n aprobados. Chrome headless comprobó
+  navegación, escenarios, filtro, selección, cambio de municipio, mapa y ancho móvil. La vista
+  nueva está en español; no se verificaron exhaustivamente CSV, interacción espacial ni teselas.
+
+## Lex: investigación web parcial — 2026-11-15
+
+- La investigación habilitada puede usar trazas de páginas encontradas y abiertas por Groq
+  Browser Search (no su resumen), con fuentes etiquetadas como consultadas y no verificadas.
+  Se pide contraste y para cifras monetarias existe un filtro conservador basado en dos dominios
+  y coincidencia textual; no garantiza fecha, producto, mercado, independencia ni ausencia de
+  alucinación. No se debe presentar como verificación automática completa.
+- Prueba real abrió cuatro fuentes; la segunda llamada de Groq agotó cuota (429), así que no se
+  verificó la respuesta final de extremo a extremo. Los fragmentos se envían a Groq como datos
+  externos no confiables. Continúan pendientes localización global y validación integral de tema.
+
+## Lex sincronizado y localización — avance — 2026-11-15
+
+- Con voz automática activa, Lex espera a generar el MP3 antes de mostrar el nuevo texto;
+  ante fallo, bloqueo del navegador, cancelación o límite de 30 s muestra el texto y un aviso.
+  Se mantiene el historial, y las respuestas largas avisan que el audio lee 1800 caracteres.
+- Fish Audio utiliza `latency=low` con `s2.1-pro-free`. En una prueba puntual con igual frase,
+  `normal` tardó 3,62 s y `low` 1,96 s; tiempos variables, sin garantía de latencia.
+- Localizados perfil agrícola, etiquetas principales del módulo climático y procedencia;
+  todavía faltan AgroAlert, asesor de rotación, resultados externos, gráficas y revisión integral
+  de tema oscuro/contraste. No se considera terminada la localización global.
+
+## Lex: voz e idioma — 2026-11-15
+
+- `s2.1-pro-free` conserva voz española existente y usa `FISH_AUDIO_REFERENCE_ID_EN` para
+  inglés. El locale del turno viaja a TTS y permanece estable si cambia la interfaz; peticiones
+  antiguas usan español. Investigación detecta consultas de actualidad en ambos idiomas.
+- Prueba real Fish Audio: HTTP 200 y MP3 para ambas voces; endpoint local anterior también
+  devolvió MP3. Un navegador puede bloquear autoplay: se ofrece reintento con el mismo audio.
+  Prueba real Groq devolvió saludos en ambos idiomas. No se comprobó salida física por
+  altavoces ni se garantiza el idioma en todas las respuestas del modelo.
+- Traducidos controles de Lex y textos propios de Earth Explorer; faltan otras páginas,
+  mensajes externos, formatos, tema oscuro integral y validación WCAG. No afirmar cobertura total.
+
+## Internacionalización y tema — avance parcial — 2026-11-15
+
+- i18next, controles globales y catálogos iniciales; idioma inicial `en-US` por instrucción
+  explícita del usuario, persistencia separada de tema y idioma. Cabecera, navegación, 404 y
+  contenido propio principal del dashboard migrados; las demás pantallas aún no están traducidas.
+- Tema oscuro inicial basado en tokens: faltan cobertura de estilos fijos, mapas, gráficas,
+  validación visual y contraste; no se debe considerar completo. Lex recibe locale por turno y
+  el reconocimiento usa locale activo; voz Fish Audio y respuesta real aún sin verificar.
+- No se modificaron fuentes agrícolas, cálculos ni geometrías. Continúa pendiente revisión
+  integral de formularios, errores, reportes, formatos regionales y las cuatro combinaciones.
+- QA: 148 pruebas backend aprobadas; Ruff, build/typecheck, lint y paridad (70 claves)
+  aprobados. Prueba de navegador confirma controles en las cuatro combinaciones, recarga y
+  fallback; no verifica la cobertura visual. Prueba v2 anterior falla por esperar el título
+  español predeterminado; `format:check` falla en `src/test/agroalert.browser.mjs` preexistente.
+
+## Lex: búsqueda y voz automáticas — 2026-11-15
+
+- Búsqueda habilitada inicialmente para intención actual; enlaces devueltos se etiquetan sin
+  verificar. La salida no ofrece precios si no existen datos verificables.
+- Cada respuesta nueva intenta reproducirse con Fish Audio; controles permiten apagar, pausar
+  y detener. Si el navegador bloquea reproducción automática se ofrece reproducción manual.
+
+## Lex voz — 2026-11-15
+
+- Activación opcional por «Lex» mediante reconocimiento del navegador, que se detiene al
+  detectar la frase; consulta requiere revisión y envío. Añadida pausa/reanudación de audio.
+- No hay TTS WebSocket/MessagePack; dictado/wake usan un navegador compatible y pueden enviar
+  audio al servicio del navegador. Fish Audio requiere clave local y prueba real posterior.
+- Verificados 144 tests backend, Ruff, build/lint y prueba de navegador con reconocimiento
+  simulado. La escucha se detiene al ocultar la pestaña; falta prueba física de micrófono.
+
+## Lex global parcial — 2026-11-15
+
+- El chat existente está disponible como panel global; historial limitado guardado en
+  sessionStorage de la pestaña. No implementa conversaciones múltiples ni persistencia
+  entre sesiones cerradas. Es almacenamiento local sin cifrar: no introducir datos sensibles.
+- Dictado bajo acción explícita con Web Speech API y revisión antes de enviar; Fish Audio
+  TTS mediante REST con clave solo backend. Sin wake word continuo, ASR alternativo,
+  streaming WebSocket ni prueba real de micrófono/proveedor.
+- Browser Search se solicita por separado si se habilita y se detecta intención de actualidad;
+  conserva anotaciones como resultados no verificados. No verifica fuentes ni obtiene precios
+  confiables: devuelve `insufficient_evidence`, no usa cifras no verificadas como hechos.
+- Claves compartidas en conversación consideradas expuestas: deben revocarse y sustituirse.
+
+## Asesor conversacional — 2026-11-15
+
+- Conversación en memoria del navegador, con hasta dos intercambios enviados como contexto
+  no verificado y fuentes seleccionadas preparadas nuevamente en cada turno; POWER puede
+  responder desde caché. Interfaz de lectura por mensajes y prompt breve en segunda persona.
+
+## Asesor Groq — ajuste de validación
+
+- Se corrige el rechazo de respuestas válidas que incluyan más preguntas que el límite de la interfaz.
+
+## Entorno Python local — 2026-11-15
+
+- Corregida la ruta del intérprete en el `.venv` local y configurado VS Code localmente
+  para resolver importaciones desde `backend`. Ambos archivos están ignorados por Git.
+- Verificados 133 tests, Ruff, compilación de archivos Python y `pip check`. Hay un aviso
+  de deprecación de Starlette/TestClient; no impidió las pruebas.
+
 ## Asesor Groq — 2026-11-15
 
 - Integrado chat server-side con `openai/gpt-oss-120b`, contexto opcional de perfil local,

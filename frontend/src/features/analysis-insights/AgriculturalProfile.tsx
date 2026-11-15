@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const STORAGE_KEY = 'hailex-agricultural-profile-v1';
 const emptyProfile = {
@@ -42,13 +43,13 @@ function loadProfile(): { profile: Profile; error: string } {
   } catch {
     return {
       profile: emptyProfile,
-      error:
-        'No se pudo leer el perfil guardado. No se ha sobrescrito; revisa el almacenamiento del navegador.',
+      error: 'profileReadError',
     };
   }
 }
 
 export function AgriculturalProfile() {
+  const { t } = useTranslation();
   const [initial] = useState(loadProfile);
   const [profile, setProfile] = useState(initial.profile);
   const [message, setMessage] = useState(initial.error);
@@ -63,40 +64,32 @@ export function AgriculturalProfile() {
     event.preventDefault();
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, profile }));
-      setMessage('Perfil guardado en este navegador.');
+      setMessage('profileSaved');
     } catch {
-      setMessage('No se pudo guardar el perfil. El formulario conserva lo que escribiste.');
+      setMessage('profileSaveError');
     }
   }
 
   function remove() {
-    if (
-      !window.confirm(
-        '¿Eliminar el perfil agrícola guardado en este navegador? No se borrarán geometrías ni análisis.',
-      )
-    )
-      return;
+    if (!window.confirm(t('profileDeleteConfirm'))) return;
     try {
       localStorage.removeItem(STORAGE_KEY);
       setProfile(emptyProfile);
       setLocked(false);
-      setMessage('Perfil eliminado de este navegador.');
+      setMessage('profileDeleted');
     } catch {
-      setMessage('No se pudo eliminar el perfil guardado.');
+      setMessage('profileDeleteError');
     }
   }
 
   return (
     <section className="surface agricultural-profile" aria-labelledby="agricultural-profile-title">
-      <h2 id="agricultural-profile-title">Mi perfil agrícola</h2>
-      <p>
-        Todos los campos son opcionales. Se guardan solo en este navegador y dispositivo; evita
-        datos personales sensibles.
-      </p>
+      <h2 id="agricultural-profile-title">{t('profileTitle')}</h2>
+      <p>{t('profileIntro')}</p>
       <form onSubmit={save}>
         <div className="parcel-grid">
           <label className="field">
-            Nombre corto de la unidad productiva
+            {t('profileName')}
             <input
               name="profile-name"
               maxLength={100}
@@ -105,20 +98,20 @@ export function AgriculturalProfile() {
             />
           </label>
           <label className="field">
-            Municipio
+            {t('profileMunicipality')}
             <select
               name="profile-municipality"
               value={profile.municipality}
               onChange={(event) => update('municipality', event.target.value)}
             >
-              <option value="">No registrado</option>
+              <option value="">{t('profileUnrecorded')}</option>
               <option>El Marqués</option>
               <option>Colón</option>
-              <option>Otro</option>
+              <option value="Otro">{t('profileOther')}</option>
             </select>
           </label>
           <label className="field">
-            Localidad o zona general
+            {t('profileLocality')}
             <input
               maxLength={150}
               value={profile.locality}
@@ -126,7 +119,7 @@ export function AgriculturalProfile() {
             />
           </label>
           <label className="field">
-            Cultivos actuales declarados
+            {t('profileCrops')}
             <input
               maxLength={300}
               value={profile.crops}
@@ -134,7 +127,7 @@ export function AgriculturalProfile() {
             />
           </label>
           <label className="field">
-            Modalidad o disponibilidad de agua declarada
+            {t('profileWater')}
             <input
               maxLength={300}
               value={profile.water}
@@ -142,7 +135,7 @@ export function AgriculturalProfile() {
             />
           </label>
           <label className="field">
-            Objetivo principal
+            {t('profileObjective')}
             <input
               maxLength={300}
               value={profile.objective}
@@ -150,7 +143,7 @@ export function AgriculturalProfile() {
             />
           </label>
           <label className="field">
-            Restricciones
+            {t('profileRestrictions')}
             <textarea
               maxLength={1000}
               value={profile.restrictions}
@@ -158,7 +151,7 @@ export function AgriculturalProfile() {
             />
           </label>
           <label className="field">
-            Comentarios adicionales
+            {t('profileNotes')}
             <textarea
               maxLength={1000}
               value={profile.notes}
@@ -168,18 +161,15 @@ export function AgriculturalProfile() {
         </div>
         <div className="monitor-actions">
           <button className="button button-primary" type="submit" disabled={locked}>
-            Guardar perfil
+            {t('profileSave')}
           </button>
           <button className="button button-secondary" type="button" onClick={remove}>
-            Eliminar perfil
+            {t('profileDelete')}
           </button>
         </div>
-        {message && <p role="status">{message}</p>}
+        {message && <p role="status">{t(message)}</p>}
       </form>
-      <p className="fine-print">
-        Este perfil es declarado por el usuario. Solo se envía a Groq si lo seleccionas al
-        consultar; no modifica parcelas ni análisis.
-      </p>
+      <p className="fine-print">{t('profileDisclaimer')}</p>
     </section>
   );
 }

@@ -1,10 +1,62 @@
 # HaiLex — Contrato API V1
 
+## Monitor fitosanitario ilustrativo — 2026-11-15
+
+- `GET /api/v1/agroalert/pests/sectors?municipality=...` devuelve localidades y cultivos
+  ilustrativos y celdas Voronoi recortadas al límite local existente, no lindes oficiales.
+- `GET /api/v1/agroalert/pests/weather?municipality=...` consulta T2M, RH2M, PRECTOTCORR
+  y GWETTOP de NASA POWER por punto; lluvia solo si hay siete días completos, y valores
+  faltantes quedan nulos. GWETTOP se expresa como porcentaje del índice, no humedad volumétrica.
+- `POST /api/v1/agroalert/pests/evaluate` recibe municipio, filtro de cultivo y clima por ID;
+  devuelve puntuaciones `data_type=simulation`, no validadas ni probabilidades. Cualquier
+  variable requerida ausente produce `not_assessable`; el índice general requiere todas las
+  plagas evaluables. Las fuentes no certifican cultivos ni presencia de plagas.
+
+## Lex: investigación de fuentes — 2026-11-15
+
+- `web_research.status=source_material_accessed` indica que Groq Browser Search devolvió
+  trazas de páginas encontradas y abiertas; incluye hasta cuatro extractos acotados con URL.
+  No certifica veracidad ni la independencia de afirmaciones. Se trata el texto externo como
+  datos no confiables. HaiLex no accede directamente a URLs proporcionadas por el modelo.
+- `price_independently_corroborated` es un filtro conservador que exige dos dominios y el mismo
+  importe/unidad textual; no verifica producto, mercado, fecha ni propiedad de los dominios.
+  El modelo debe cotejar esos campos y reconocer incertidumbre. La expresión no cubre todos
+  los formatos y no proporciona una garantía de verificación: revisión humana imprescindible.
+- El clasificador de intención puede omitir consultas; una cuota o fallo del proveedor produce
+  error o información insuficiente. Errores `web_price_unverified` rechazan algunas cifras
+  monetarias no corroboradas; el filtro no cubre todas las formas de expresar precios.
+
+## Voz por idioma — 2026-11-15
+
+- `POST /api/v1/advisor/tts` admite `locale` opcional (`es-MX` o `en-US`); si se omite
+  conserva `es-MX`. Selecciona la voz configurada por idioma y envía el modelo configurado
+  a Fish Audio. El idioma del turno se mantiene aunque cambie la interfaz durante la consulta.
+
+## Preferencia de idioma de Lex — 2026-11-15
+
+- `POST /api/v1/advisor/chat` acepta `locale` opcional, `es-MX` o `en-US`; clientes
+  anteriores conservan `es-MX`. El locale guía la respuesta nueva, no modifica el historial
+  ni los datos fuente. La salida real del modelo y Fish Audio no se han verificado en vivo.
+
+## Lex parcial — 2026-11-15
+
+- `POST /api/v1/advisor/chat` acepta `include_web` opcional. Para intención actual, una
+  llamada independiente solicita Browser Search; conserva enlaces recibidos,
+  marcadas `search_result_only`. La extracción de precios y verificación no están implementadas;
+  no se envían afirmaciones no verificadas al modelo como hechos.
+- `POST /api/v1/advisor/tts`: texto de hasta 1800 caracteres; Fish Audio REST devuelve MP3
+  o errores tipados. API key solo backend. Sin WebSocket, streaming ni ASR de servidor.
+- `GET /api/v1/advisor/config` informa capacidades y estado booleano de configuración sin
+  exponer credenciales. Wake word depende del navegador y consentimiento del usuario.
+
 ## Asesor Groq — 2026-11-15
 
 - `POST /api/v1/advisor/chat`: mensaje de hasta 4000 caracteres, región y cultivo opcionales,
   modalidad, ID satelital opcional, perfil declarado sin nombre y banderas por fuente.
   Responde con interpretación estructurada, contexto preparado, versión de prompt y modelo.
+- `history` opcional conserva hasta dos intercambios completos (`user`/`assistant`), con
+  límite total de 12000 caracteres; se trata como contexto no verificado. Cada turno vuelve
+  a preparar las fuentes seleccionadas, sujeto a la caché y disponibilidad de cada servicio.
 - NASA POWER consulta los 30 días anteriores al día UTC actual para puntos municipales; el
   consolidado SIAP filtra municipio/cultivo y conserva ciclo/modalidad por separado. La
   humedad SMAP/MERRA mantiene variable y unidad; Sentinel-2 no equivale a humedad del suelo.

@@ -2,6 +2,7 @@ import { AppLayout } from './app/layout/AppLayout';
 import { lazy, Suspense } from 'react';
 import { useScreenNavigation } from './hooks/useScreenNavigation';
 import { PageHeading } from './components/PageHeading';
+import { useTranslation } from 'react-i18next';
 
 const DashboardPage = lazy(() =>
   import('./features/dashboard/DashboardPage').then((m) => ({ default: m.DashboardPage })),
@@ -26,6 +27,9 @@ const AnalysisInsightsPage = lazy(() =>
     default: m.AnalysisInsightsPage,
   })),
 );
+const PestMonitorPage = lazy(() =>
+  import('./features/pest-monitor/PestMonitorPage').then((m) => ({ default: m.PestMonitorPage })),
+);
 
 const pages = {
   dashboard: DashboardPage,
@@ -33,31 +37,33 @@ const pages = {
   'climate-intelligence': ClimateIntelligencePage,
   'rotation-studio': RotationStudioPage,
   'analysis-insights': AnalysisInsightsPage,
+  'pest-monitor': PestMonitorPage,
 };
 
 export default function App() {
+  const { t } = useTranslation();
   const { hash, screen } = useScreenNavigation();
   const Page = screen ? pages[screen.id] : null;
 
   return (
     <AppLayout
       active={screen?.id ?? null}
-      label={screen?.label ?? 'Página no encontrada'}
+      label={screen ? t(screen.id) : t('notFound')}
       routeKey={hash}
     >
       {Page ? (
-        <Suspense fallback={<p role="status">Cargando pantalla…</p>}>
+        <Suspense fallback={<p role="status">{t('loading')}</p>}>
           <Page />
         </Suspense>
       ) : (
         <>
           <PageHeading
-            eyebrow="RUTA NO DISPONIBLE"
-            title="No encontramos esta pantalla."
-            description="El enlace no corresponde a una de las cinco secciones de HaiLex."
+            eyebrow={t('unavailable')}
+            title={t('missingTitle')}
+            description={t('missingDescription')}
           />
           <a className="button button-primary" href="#/dashboard">
-            Volver al Dashboard
+            {t('back')}
           </a>
         </>
       )}

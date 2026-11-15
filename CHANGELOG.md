@@ -1,5 +1,61 @@
 # CHANGELOG.md
 
+## Monitor fitosanitario ilustrativo — 2026-11-15
+
+- Nueva vista, API y simulador para Colón y El Marqués, con NASA POWER, mapa y CSV;
+  índices, perfiles y geometrías sectoriales señalados como ilustrativos y no validados.
+
+## Lex: acceso a fuentes web — 2026-11-15
+
+- Aprovecha páginas abiertas por Browser Search con trazabilidad y controles conservadores de
+  precio; los resultados siguen requiriendo revisión, sin prometer verificación automática.
+
+## Lex sincronizado — 2026-11-15
+
+- Se difiere la presentación del texto hasta que la voz está preparada, con salida segura ante
+  fallos, límite de espera y reintento manual; Fish Audio usa baja latencia. Se amplían textos
+  bilingües en perfil, clima y procedencia; la migración global sigue incompleta.
+
+## Lex: voz por idioma — 2026-11-15
+
+- Selección de voces Fish Audio por locale, búsqueda en inglés, reintento manual de audio
+  bloqueado y localización de controles Lex y Earth Explorer; traducción global sigue parcial.
+
+## Preferencias de idioma y tema — avance parcial — 2026-11-15
+
+- Añadidos catálogos i18next iniciales, controles persistentes, navegación y dashboard
+  parcialmente localizados, tokens oscuros iniciales y locale por turno para Lex.
+- La traducción integral, compatibilidad visual oscura, pruebas visuales y voz real siguen pendientes.
+
+## Lex: búsqueda y voz automáticas
+
+- La búsqueda web se activa inicialmente y cada respuesta nueva intenta leerse con Fish Audio;
+  ambas funciones se pueden desactivar. Las referencias siguen sin verificación de precios.
+
+## Lex voz — 2026-11-15
+
+- Activación de escucha opcional por «Lex», detener y pausar/reanudar audio; configuración
+  pública sin claves. Streaming y verificación profunda siguen pendientes.
+
+## Lex global parcial — 2026-11-15
+
+- Reutilizado el asesor en panel global con historial de sesión, dictado manual y Fish Audio
+  REST; Browser Search separado y referencias sin verificación. Ver limitaciones en estado.
+
+## Asesor conversacional — 2026-11-15
+
+- Añadida continuidad acotada del chat, nueva conversación y formato de lectura por mensajes;
+  el asesor vuelve a preparar los datos seleccionados en cada consulta.
+
+## Asesor Groq — ajuste de validación
+
+- Limita las preguntas y listas devueltas al máximo permitido antes de validar la respuesta.
+
+## Entorno Python local — 2026-11-15
+
+- Reparada la referencia del intérprete en el entorno virtual local y configurado VS Code
+  para resolver importaciones del backend; verificadas pruebas y dependencias.
+
 ## Asesor Groq — 2026-11-15
 
 - Integrado chat Groq server-side con prompt versionado, salida validada y contexto opcional

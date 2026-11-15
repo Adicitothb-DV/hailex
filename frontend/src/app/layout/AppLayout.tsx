@@ -3,6 +3,9 @@ import { Menu, X } from 'lucide-react';
 import type { ScreenId } from '../navigation/navigation';
 import { Sidebar } from './Sidebar';
 import { useApp } from '../AppContext';
+import { LexWidget } from '../../features/analysis-insights/LexWidget';
+import { useTranslation } from 'react-i18next';
+import { PreferencesControls } from '../PreferencesControls';
 
 export function AppLayout({
   children,
@@ -20,6 +23,7 @@ export function AppLayout({
   const button = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const { connection, location, refreshConnection } = useApp();
+  const { t } = useTranslation();
   useEffect(() => {
     const image = new Image();
     image.onload = () => {
@@ -45,11 +49,13 @@ export function AppLayout({
     };
   }, []);
   useEffect(() => {
-    document.title = `${label} | HaiLex`;
     dialog.current?.close();
     main.current?.focus({ preventScroll: true });
     window.scrollTo(0, 0);
-  }, [label, routeKey]);
+  }, [routeKey]);
+  useEffect(() => {
+    document.title = `${label} | HaiLex`;
+  }, [label]);
   function close() {
     dialog.current?.close();
   }
@@ -63,7 +69,7 @@ export function AppLayout({
           main.current?.focus();
         }}
       >
-        Saltar al contenido
+        {t('skip')}
       </a>
       <dialog
         ref={dialog}
@@ -80,11 +86,11 @@ export function AppLayout({
       >
         <div className="drawer-inner">
           <div className="drawer-title">
-            <h2 id="drawer-title">Explorar HaiLex</h2>
+            <h2 id="drawer-title">{t('explore')}</h2>
             <button
               className="icon-button drawer-close"
               type="button"
-              aria-label="Cerrar menú"
+              aria-label={t('closeMenu')}
               onClick={close}
             >
               <X size={20} />
@@ -100,7 +106,7 @@ export function AppLayout({
               ref={button}
               type="button"
               className="menu-trigger"
-              aria-label="Abrir menú"
+              aria-label={t('openMenu')}
               aria-haspopup="dialog"
               aria-expanded={open}
               aria-controls="navigation-drawer"
@@ -116,19 +122,22 @@ export function AppLayout({
             <span className="header-page">{label}</span>
           </div>
           <div className="header-actions">
-            <span className="header-location">{location.label}</span>
+            <PreferencesControls />
+            <span className="header-location">
+              {location.type === 'custom' ? t('customPoint') : location.label}
+            </span>
             <button
               type="button"
               className={`connection connection-${connection}`}
               onClick={refreshConnection}
-              title="Volver a comprobar el backend"
+              title={t('checkBackend')}
             >
               <span className="connection-dot" />
               {connection === 'connected'
-                ? 'Backend conectado'
+                ? t('connected')
                 : connection === 'loading'
-                  ? 'Comprobando backend'
-                  : 'Backend desconectado'}
+                  ? t('checking')
+                  : t('disconnected')}
             </button>
           </div>
         </header>
@@ -136,10 +145,11 @@ export function AppLayout({
           {children}
         </main>
         <footer className="v2-footer">
-          <span>HaiLex · Earth & agriculture</span>
-          <span>Evaluación exploratoria, no asesoría agronómica.</span>
+          <span>HaiLex · {t('tagline')}</span>
+          <span>{t('footer')}</span>
         </footer>
       </div>
+      <LexWidget />
     </div>
   );
 }

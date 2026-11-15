@@ -1,14 +1,16 @@
 import { useApp } from '../app/AppContext';
 import { locations } from '../data/locations';
+import { useTranslation } from 'react-i18next';
 
 export function LocationSelect() {
+  const { t } = useTranslation();
   const { location, setLocation } = useApp();
   const selected = locations.findIndex(
     (item) => item.latitude === location.latitude && item.longitude === location.longitude,
   );
   return (
     <label className="field">
-      Ubicación
+      {t('location')}
       <select
         value={selected < 0 ? 'custom' : String(selected)}
         onChange={(event) => {
@@ -21,7 +23,7 @@ export function LocationSelect() {
             {item.label}
           </option>
         ))}
-        {selected < 0 && <option value="custom">Punto personalizado</option>}
+        {selected < 0 && <option value="custom">{t('customPoint')}</option>}
       </select>
     </label>
   );

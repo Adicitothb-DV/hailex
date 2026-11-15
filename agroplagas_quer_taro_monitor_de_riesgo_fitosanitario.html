@@ -1,0 +1,2128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgroPlagas Querétaro · Monitor de Riesgo Fitosanitario</title>
+
+  <!-- Tipografía Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Pines flotantes de sectores dentro del municipio */
+    .sector-pin {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      color: #ffffff;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.32);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      cursor: pointer;
+    }
+
+    .sector-pin:hover {
+      transform: scale(1.06);
+    }
+
+    .sector-pin.selected-pin {
+      transform: scale(1.12);
+      box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.25), 0 8px 18px rgba(15, 23, 42, 0.45);
+    }
+
+    /* Etiqueta de municipio vecino en el mapa */
+    .neighbor-label {
+      background: rgba(15, 23, 42, 0.78);
+      color: #f8fafc;
+      border: 1px dashed rgba(248, 250, 252, 0.65);
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
+      cursor: pointer;
+    }
+
+    /* Ajuste limpio de controles Leaflet */
+    .leaflet-container {
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+
+  <!-- Encabezado Principal -->
+  <header class="bg-gradient-to-r from-emerald-950 via-teal-900 to-emerald-900 text-white shadow-lg border-b border-emerald-800/60">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div class="space-y-1">
+        <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-xs font-semibold">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          Vigilancia Fitosanitaria · Querétaro, México
+        </div>
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-white">
+          AgroPlagas Querétaro · Monitor de Riesgo Fitosanitario
+        </h1>
+        <p class="text-xs sm:text-sm text-emerald-100/90 max-w-2xl">
+          Estimación de plagas agrícolas por localidad en <strong class="text-white">El Marqués</strong> y <strong class="text-white">Colón</strong> mediante telemetría agroclimática de NASA POWER y delimitaciones municipales exactas.
+        </p>
+      </div>
+
+      <!-- Selector rápido de municipio en cabecera (sin paréntesis) -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          id="headerMunElMarques"
+          onclick="selectMunicipality('el_marques')"
+          class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer bg-white text-emerald-950 shadow-md"
+        >
+          📍 El Marqués
+        </button>
+        <button
+          type="button"
+          id="headerMunColon"
+          onclick="selectMunicipality('colon')"
+          class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer bg-emerald-800/70 hover:bg-emerald-800 text-emerald-100 border border-emerald-600/50"
+        >
+          📍 Colón
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenido Principal -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5 sm:py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
+
+      <!-- Columna Izquierda: Controles, Simulador y Lista de Sectores -->
+      <aside class="lg:col-span-4 space-y-5">
+
+        <!-- Panel de Selección de Cultivo y Modo -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-4 sm:p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide">
+              1. Configuración de Análisis
+            </h2>
+            <span id="sidebarMunBadge" class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
+              El Marqués
+            </span>
+          </div>
+
+          <!-- Filtro por Cultivo -->
+          <div class="space-y-1.5">
+            <label for="cropFilterSelect" class="block text-xs font-bold text-slate-700">
+              Cultivo a evaluar
+            </label>
+            <select
+              id="cropFilterSelect"
+              onchange="setCropFilter(this.value)"
+              class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600"
+            >
+              <option value="ALL">🌾 Todos los cultivos de la zona</option>
+              <option value="maiz">🌽 Maíz (riego y temporal)</option>
+              <option value="alfalfa">🌿 Alfalfa forrajera</option>
+              <option value="brocoli">🥦 Brócoli y Hortalizas</option>
+              <option value="sorgo">🌾 Sorgo grano / forrajero</option>
+              <option value="cebada">🌾 Cebada maltera</option>
+            </select>
+          </div>
+
+          <!-- Selector de Fuente: Datos Reales vs Simulador -->
+          <div class="space-y-1.5">
+            <span class="block text-xs font-bold text-slate-700">
+              Escenario climático
+            </span>
+            <div class="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-100 border border-slate-200">
+              <button
+                type="button"
+                id="modeLiveBtn"
+                onclick="setDataMode('live')"
+                class="py-2 px-2.5 rounded-lg text-xs font-bold transition cursor-pointer bg-white text-slate-900 shadow-sm"
+              >
+                🛰️ NASA POWER
+              </button>
+              <button
+                type="button"
+                id="modeSimBtn"
+                onclick="setDataMode('simulator')"
+                class="py-2 px-2.5 rounded-lg text-xs font-bold transition cursor-pointer text-slate-600 hover:text-slate-900"
+              >
+                🎛️ Simulador
+              </button>
+            </div>
+          </div>
+
+          <!-- Controles del Simulador "¿Qué riesgos habría?" -->
+          <div id="simulatorPanel" class="hidden rounded-xl bg-amber-50/80 border border-amber-200 p-3.5 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-amber-950">
+                Simulador: ¿Qué riesgos habría?
+              </span>
+              <span class="text-[11px] font-semibold text-amber-800">Tiempo real</span>
+            </div>
+
+            <!-- Escenarios rápidos -->
+            <div class="flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                onclick="applySimPreset('hot_dry')"
+                class="px-2.5 py-1 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-900 text-[11px] font-bold cursor-pointer transition"
+              >
+                ☀️ Onda de calor seca
+              </button>
+              <button
+                type="button"
+                onclick="applySimPreset('wet_humid')"
+                class="px-2.5 py-1 rounded-lg bg-sky-100 hover:bg-sky-200 text-sky-900 text-[11px] font-bold cursor-pointer transition"
+              >
+                🌧️ Temporal húmedo
+              </button>
+              <button
+                type="button"
+                onclick="applySimPreset('prolonged_drought')"
+                class="px-2.5 py-1 rounded-lg bg-orange-100 hover:bg-orange-200 text-orange-900 text-[11px] font-bold cursor-pointer transition"
+              >
+                🏜️ Sequía prolongada
+              </button>
+              <button
+                type="button"
+                onclick="applySimPreset('optimal_balanced')"
+                class="px-2.5 py-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-900 text-[11px] font-bold cursor-pointer transition"
+              >
+                🌤️ Condición óptima
+              </button>
+              <button
+                type="button"
+                onclick="resetSimulatorToLive()"
+                class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-[11px] font-bold cursor-pointer transition"
+              >
+                ↩️ Restaurar
+              </button>
+            </div>
+
+            <!-- Sliders -->
+            <div class="space-y-2.5 pt-1">
+              <div>
+                <div class="flex justify-between text-[11px] font-bold text-slate-700">
+                  <span>Temperatura media</span>
+                  <span id="simTempVal" class="text-amber-900">24.0 °C</span>
+                </div>
+                <input
+                  id="simTempSlider"
+                  type="range"
+                  min="12"
+                  max="36"
+                  step="0.5"
+                  value="24.0"
+                  oninput="onSimSliderChange()"
+                  class="w-full accent-emerald-700 cursor-pointer"
+                />
+              </div>
+
+              <div>
+                <div class="flex justify-between text-[11px] font-bold text-slate-700">
+                  <span>Humedad relativa</span>
+                  <span id="simRhVal" class="text-amber-900">55%</span>
+                </div>
+                <input
+                  id="simRhSlider"
+                  type="range"
+                  min="20"
+                  max="95"
+                  step="1"
+                  value="55"
+                  oninput="onSimSliderChange()"
+                  class="w-full accent-emerald-700 cursor-pointer"
+                />
+              </div>
+
+              <div>
+                <div class="flex justify-between text-[11px] font-bold text-slate-700">
+                  <span>Lluvia acumulada (7 días)</span>
+                  <span id="simRainVal" class="text-amber-900">12 mm</span>
+                </div>
+                <input
+                  id="simRainSlider"
+                  type="range"
+                  min="0"
+                  max="90"
+                  step="1"
+                  value="12"
+                  oninput="onSimSliderChange()"
+                  class="w-full accent-emerald-700 cursor-pointer"
+                />
+              </div>
+
+              <div>
+                <div class="flex justify-between text-[11px] font-bold text-slate-700">
+                  <span>Humedad superficial del suelo</span>
+                  <span id="simSoilVal" class="text-amber-900">45%</span>
+                </div>
+                <input
+                  id="simSoilSlider"
+                  type="range"
+                  min="10"
+                  max="90"
+                  step="1"
+                  value="45"
+                  oninput="onSimSliderChange()"
+                  class="w-full accent-emerald-700 cursor-pointer"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Lista de Localidades / Sectores del Municipio -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-4 sm:p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide">
+              2. Localidades del Municipio
+            </h2>
+            <span id="sectorCountBadge" class="text-xs font-bold text-slate-500">
+              6 zonas
+            </span>
+          </div>
+          <p class="text-xs text-slate-500">
+            Selecciona una comunidad para consultar su nivel de riesgo y plagas probables:
+          </p>
+          <div id="sectorCardsList" class="space-y-2.5">
+            <!-- Renderizado dinámico -->
+          </div>
+        </section>
+      </aside>
+
+      <!-- Columna Derecha: Resumen del Sector, Mapa Recortado y Tarjetas de Plagas -->
+      <div class="lg:col-span-8 space-y-5 sm:space-y-6">
+
+        <!-- Tarjeta de Resumen del Sector Activo -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-4 sm:p-5 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span id="activeMunTag" class="px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200 text-xs font-bold">
+                  El Marqués · CVEGEO 22011
+                </span>
+                <span id="weatherSourceTag" class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold">
+                  🛰️ NASA POWER
+                </span>
+              </div>
+              <h2 id="activeSectorTitle" class="text-lg sm:text-xl font-extrabold text-slate-900 mt-1.5">
+                Chichimequillas · Zona Norte
+              </h2>
+              <p id="activeSectorDesc" class="text-xs sm:text-sm text-slate-600 mt-0.5">
+                Corredor agrícola norte de riego y temporal.
+              </p>
+            </div>
+
+            <div class="flex items-center gap-2.5 self-start">
+              <div id="overallRiskPill" class="px-3.5 py-2 rounded-xl border text-right">
+                <div class="text-[11px] font-bold uppercase tracking-wide opacity-80">Riesgo General</div>
+                <div id="overallRiskValue" class="text-base sm:text-lg font-extrabold leading-tight">
+                  Moderado · 54%
+                </div>
+              </div>
+              <button
+                type="button"
+                onclick="exportPestReportCSV()"
+                class="px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-sm transition cursor-pointer"
+                title="Descargar reporte fitosanitario en formato CSV"
+              >
+                📥 CSV
+              </button>
+            </div>
+          </div>
+
+          <!-- Variables agroclimáticas del sector -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <div class="rounded-xl bg-slate-50 border border-slate-200/80 p-3">
+              <div class="text-[11px] font-semibold text-slate-500">🌡️ Temperatura media</div>
+              <div id="metricTemp" class="text-base font-extrabold text-slate-900 mt-0.5">-- °C</div>
+            </div>
+            <div class="rounded-xl bg-slate-50 border border-slate-200/80 p-3">
+              <div class="text-[11px] font-semibold text-slate-500">💧 Humedad relativa</div>
+              <div id="metricRh" class="text-base font-extrabold text-slate-900 mt-0.5">--%</div>
+            </div>
+            <div class="rounded-xl bg-slate-50 border border-slate-200/80 p-3">
+              <div class="text-[11px] font-semibold text-slate-500">🌧️ Lluvia (7 días)</div>
+              <div id="metricRain" class="text-base font-extrabold text-slate-900 mt-0.5">-- mm</div>
+            </div>
+            <div class="rounded-xl bg-slate-50 border border-slate-200/80 p-3">
+              <div class="text-[11px] font-semibold text-slate-500">🌱 Humedad suelo</div>
+              <div id="metricSoil" class="text-base font-extrabold text-slate-900 mt-0.5">--%</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Mapa Interactivo Leaflet -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-4 sm:p-5 space-y-3.5">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h3 class="text-sm sm:text-base font-extrabold text-slate-900">
+                Mapa de Riesgo Fitosanitario Recortado al Límite Oficial
+              </h3>
+              <p class="text-xs text-slate-500">
+                Haz clic dentro de cualquier sector recortado para evaluar sus plagas o sobre el municipio vecino para cambiar
+              </p>
+            </div>
+
+            <!-- Controles de vista base del mapa + recarga de límites -->
+            <div class="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onclick="reloadOfficialBoundaries()"
+                class="px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-xs font-bold transition cursor-pointer"
+                title="Volver a descargar polígonos oficiales MGN/OSM sin simplificación"
+              >
+                🔄 Actualizar límites
+              </button>
+              <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200">
+                <button
+                  type="button"
+                  id="mapLightBtn"
+                  onclick="setMapBaseLayer('light')"
+                  class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-white text-slate-900 shadow-sm"
+                >
+                  🗺️ Mapa claro
+                </button>
+                <button
+                  type="button"
+                  id="mapSatBtn"
+                  onclick="setMapBaseLayer('satellite')"
+                  class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer text-slate-600 hover:text-slate-900"
+                >
+                  🛰️ Imagen satelital
+                </button>
+                <button
+                  type="button"
+                  id="mapReliefBtn"
+                  onclick="setMapBaseLayer('relief')"
+                  class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer text-slate-600 hover:text-slate-900"
+                >
+                  ⛰️ Relieve
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Indicador de precisión geométrica y origen MGN/OSM -->
+          <div class="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-slate-900 text-slate-100 text-[11px]">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="boundaryPrecisionBadge" class="font-semibold">
+                Cargando delimitación oficial MGN/OSM (smoothFactor: 0)...
+              </span>
+            </div>
+            <span id="boundaryAreaBadge" class="text-emerald-300 font-bold">
+              Superficie geodésica: -- km²
+            </span>
+          </div>
+
+          <!-- Banner interactivo al hacer clic en municipio vecino -->
+          <div
+            id="neighborSwitchBanner"
+            class="hidden flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 rounded-xl bg-sky-50 border border-sky-300 text-xs text-sky-950"
+          >
+            <span id="neighborSwitchText" class="font-semibold">
+              Seleccionaste un punto dentro del municipio vecino.
+            </span>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                id="neighborSwitchActionBtn"
+                class="px-3 py-1 rounded-lg bg-sky-700 hover:bg-sky-800 text-white font-bold cursor-pointer transition"
+              >
+                Cambiar municipio
+              </button>
+              <button
+                type="button"
+                onclick="hideNeighborBanner()"
+                class="px-2 py-1 rounded-lg text-sky-700 hover:bg-sky-100 font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          <!-- Contenedor responsivo del mapa -->
+          <div id="pestMap" class="w-full h-[370px] sm:h-[440px] rounded-xl border border-slate-200 overflow-hidden"></div>
+
+          <!-- Leyenda semáforo y límites -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs text-slate-600">
+            <div class="flex flex-wrap items-center gap-3.5">
+              <span class="inline-flex items-center gap-1.5 font-semibold">
+                <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+                Riesgo Bajo (&lt;40%)
+              </span>
+              <span class="inline-flex items-center gap-1.5 font-semibold">
+                <span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>
+                Riesgo Moderado (40–69%)
+              </span>
+              <span class="inline-flex items-center gap-1.5 font-semibold">
+                <span class="w-3 h-3 rounded-full bg-rose-600 inline-block"></span>
+                Riesgo Alto (≥70%)
+              </span>
+              <span class="inline-flex items-center gap-1.5 font-semibold">
+                <span class="w-4 h-0.5 bg-emerald-900 inline-block"></span>
+                Límite municipal exacto
+              </span>
+              <span class="inline-flex items-center gap-1.5 font-semibold">
+                <span class="w-4 h-0.5 border-t-2 border-dashed border-slate-500 inline-block"></span>
+                Colindancia vecina
+              </span>
+            </div>
+            <span class="text-[11px] text-slate-400">
+              Recorte Voronoi + Turf.js · smoothFactor: 0
+            </span>
+          </div>
+        </section>
+
+        <!-- Sección de Tarjetas Detalladas de Plagas -->
+        <section class="space-y-3.5">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+            <div>
+              <h3 class="text-base sm:text-lg font-extrabold text-slate-900">
+                3. Riesgo Estimado por Plaga Agrícola
+              </h3>
+              <p class="text-xs text-slate-500">
+                Ordenadas de mayor a menor probabilidad según el clima y cultivos del sector seleccionado
+              </p>
+            </div>
+            <span id="pestCountBadge" class="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full self-start">
+              7 plagas evaluadas
+            </span>
+          </div>
+
+          <div id="pestCardsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Renderizado dinámico -->
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Pie de página -->
+  <footer class="bg-white border-t border-slate-200 mt-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <span>AgroPlagas Querétaro · Estimación orientativa basada en variables agroclimáticas NASA POWER y límites MGN/OSM.</span>
+      <span>No sustituye el muestreo directo en parcela ni la recomendación de un técnico fitosanitario.</span>
+    </div>
+  </footer>
+
+  <!-- Contenedor de notificaciones Toast (sin alert()) -->
+  <div id="toastBox" class="fixed bottom-5 right-5 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <!-- Turf.js v7 para operaciones geométricas exactas (Voronoi, intersección, máscara y validación puntual) -->
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
+
+  <script>
+    // =========================================================================
+    // 1. DATOS GEOGRÁFICOS Y PERFILES AGRÍCOLAS VERIFICADOS (EL MARQUÉS Y COLÓN)
+    // =========================================================================
+    const BOUNDARY_CACHE_KEY = 'agroplagas_qro_mgn_boundaries_v1';
+
+    const MUNICIPALITIES = {
+      el_marques: {
+        id: 'el_marques',
+        name: 'El Marqués',
+        cvegeo: '22011',
+        osmId: 5605767,
+        center: [20.7063, -100.2700],
+        zoom: 11,
+        polygon: [
+          [20.888, -100.348], [20.842, -100.352], [20.785, -100.346], [20.735, -100.358],
+          [20.688, -100.365], [20.642, -100.356], [20.605, -100.368], [20.572, -100.354],
+          [20.542, -100.338], [20.526, -100.312], [20.522, -100.282], [20.538, -100.245],
+          [20.562, -100.205], [20.598, -100.172], [20.638, -100.146], [20.678, -100.158],
+          [20.718, -100.178], [20.762, -100.194], [20.808, -100.206], [20.855, -100.214],
+          [20.892, -100.218], [20.902, -100.255], [20.898, -100.295], [20.891, -100.326],
+          [20.888, -100.348]
+        ],
+        sectors: [
+          {
+            id: 'em_chichimequillas',
+            name: 'Chichimequillas · Sector Norte',
+            shortName: 'Chichimequillas',
+            lat: 20.7710,
+            lon: -100.2890,
+            crops: ['maiz', 'alfalfa', 'cebada'],
+            cropsLabel: 'Maíz de riego, alfalfa, cebada',
+            description: 'Corredor agrícola norte con parcelas extensivas de grano y forraje.',
+            baseline: { temp: 22.8, tempMax: 29.4, rh: 54, rain7d: 14, soil: 44 }
+          },
+          {
+            id: 'em_atongo',
+            name: 'Atongo · Sector Noreste',
+            shortName: 'Atongo',
+            lat: 20.7350,
+            lon: -100.2150,
+            crops: ['maiz', 'sorgo', 'cebada'],
+            cropsLabel: 'Maíz, sorgo forrajero, cebada',
+            description: 'Lomerío y valle de transición colindante con Colón.',
+            baseline: { temp: 23.4, tempMax: 30.1, rh: 50, rain7d: 11, soil: 39 }
+          },
+          {
+            id: 'em_amazcala',
+            name: 'Amazcala · Valle Central',
+            shortName: 'Amazcala',
+            lat: 20.7060,
+            lon: -100.2640,
+            crops: ['alfalfa', 'brocoli', 'maiz'],
+            cropsLabel: 'Alfalfa, brócoli, lechuga, maíz',
+            description: 'Núcleo hortícola y lechero intensivo con riego por goteo y aspersión.',
+            baseline: { temp: 23.8, tempMax: 30.5, rh: 58, rain7d: 16, soil: 52 }
+          },
+          {
+            id: 'em_la_griega',
+            name: 'La Griega · Corredor Centro-Sur',
+            shortName: 'La Griega',
+            lat: 20.6590,
+            lon: -100.2440,
+            crops: ['brocoli', 'maiz', 'alfalfa'],
+            cropsLabel: 'Hortalizas (brócoli/lechuga), maíz, alfalfa',
+            description: 'Planicie agrícola con alta rotación de crucíferas y forrajes.',
+            baseline: { temp: 24.2, tempMax: 31.0, rh: 55, rain7d: 12, soil: 47 }
+          },
+          {
+            id: 'em_la_canada',
+            name: 'La Cañada · Sector Poniente',
+            shortName: 'La Cañada',
+            lat: 20.6080,
+            lon: -100.3330,
+            crops: ['maiz', 'alfalfa', 'brocoli'],
+            cropsLabel: 'Maíz, alfalfa, huertos mixtos',
+            description: 'Zona de cañada y huertos periurbanos con microclima templado.',
+            baseline: { temp: 23.5, tempMax: 29.8, rh: 57, rain7d: 15, soil: 49 }
+          },
+          {
+            id: 'em_el_colorado',
+            name: 'El Colorado · Sector Sur',
+            shortName: 'El Colorado',
+            lat: 20.5650,
+            lon: -100.2750,
+            crops: ['maiz', 'sorgo', 'cebada'],
+            cropsLabel: 'Maíz de temporal/riego, sorgo, cebada',
+            description: 'Franja agrícola sur cercana al corredor industrial y autopista.',
+            baseline: { temp: 24.6, tempMax: 31.4, rh: 49, rain7d: 10, soil: 38 }
+          }
+        ]
+      },
+      colon: {
+        id: 'colon',
+        name: 'Colón',
+        cvegeo: '22005',
+        osmId: 5605684,
+        center: [20.7764, -100.0888],
+        zoom: 11,
+        polygon: [
+          [20.892, -100.218], [20.855, -100.214], [20.808, -100.206], [20.762, -100.194],
+          [20.718, -100.178], [20.678, -100.158], [20.638, -100.146], [20.622, -100.112],
+          [20.612, -100.072], [20.614, -100.034], [20.648, -100.008], [20.692, -99.985],
+          [20.735, -99.962], [20.772, -99.935], [20.812, -99.968], [20.855, -100.012],
+          [20.898, -100.058], [20.942, -100.116], [20.935, -100.155], [20.915, -100.188],
+          [20.892, -100.218]
+        ],
+        sectors: [
+          {
+            id: 'co_esperanza',
+            name: 'Esperanza · Sector Norte',
+            shortName: 'Esperanza',
+            lat: 20.8450,
+            lon: -100.0850,
+            crops: ['maiz', 'sorgo', 'cebada'],
+            cropsLabel: 'Maíz de temporal, sorgo, cebada',
+            description: 'Zona norte de transición serrana y lomeríos agrícolas.',
+            baseline: { temp: 22.5, tempMax: 29.2, rh: 52, rain7d: 13, soil: 41 }
+          },
+          {
+            id: 'co_cabecera',
+            name: 'Colón Centro · Valle Principal',
+            shortName: 'Colón Centro',
+            lat: 20.7820,
+            lon: -100.0550,
+            crops: ['alfalfa', 'maiz', 'brocoli'],
+            cropsLabel: 'Alfalfa, maíz forrajero, hortalizas',
+            description: 'Valle agrícola central con unidades de riego y producción lechera.',
+            baseline: { temp: 24.1, tempMax: 30.8, rh: 48, rain7d: 9, soil: 42 }
+          },
+          {
+            id: 'co_galeras',
+            name: 'Galeras · Sector Poniente',
+            shortName: 'Galeras',
+            lat: 20.7850,
+            lon: -100.1850,
+            crops: ['brocoli', 'alfalfa', 'maiz'],
+            cropsLabel: 'Hortalizas protegidas y campo abierto, alfalfa, maíz',
+            description: 'Corredor poniente colindante con El Marqués de alta tecnificación.',
+            baseline: { temp: 23.9, tempMax: 30.6, rh: 51, rain7d: 11, soil: 45 }
+          },
+          {
+            id: 'co_soriano',
+            name: 'Soriano · Corredor Centro-Este',
+            shortName: 'Soriano',
+            lat: 20.7680,
+            lon: -100.0680,
+            crops: ['sorgo', 'alfalfa', 'maiz'],
+            cropsLabel: 'Sorgo, alfalfa, maíz forrajero',
+            description: 'Zona de semidesierto agrícola con alta insolación diurna.',
+            baseline: { temp: 24.8, tempMax: 31.6, rh: 45, rain7d: 7, soil: 35 }
+          },
+          {
+            id: 'co_ajuchitlan',
+            name: 'Ajuchitlán · Sector Sur',
+            shortName: 'Ajuchitlán',
+            lat: 20.7150,
+            lon: -100.0150,
+            crops: ['alfalfa', 'sorgo', 'brocoli'],
+            cropsLabel: 'Alfalfa, sorgo, hortalizas de riego',
+            description: 'Valle sur con suelos profundos y alta demanda hídrica en estiaje.',
+            baseline: { temp: 25.1, tempMax: 32.0, rh: 44, rain7d: 6, soil: 37 }
+          }
+        ]
+      }
+    };
+
+    // =========================================================================
+    // 2. CATÁLOGO FITOSANITARIO REGIONAL DE QUERÉTARO (7 PLAGAS CLAVE)
+    // =========================================================================
+    const PEST_CATALOG = [
+      {
+        id: 'gusano_cogollero',
+        name: 'Gusano cogollero',
+        scientific: 'Spodoptera frugiperda',
+        icon: '🐛',
+        crops: ['maiz', 'sorgo'],
+        cropsText: 'Maíz y Sorgo',
+        inspect: 'Revisar cogollo central en etapas V3–V8 buscando ventanillas translúcidas y excretas frescas.',
+        mip: 'Colocar trampas con feromona sexual, liberar Trichogramma spp. y aplicar Bacillus thuringiensis en larvas chicas.',
+        evaluate: (w) => {
+          const tempFactor = clamp01((w.temp - 19) / 11);
+          const drySpell = clamp01((25 - w.rain7d) / 25);
+          const moderateRh = 1 - Math.abs(w.rh - 58) / 55;
+          const score = Math.round(clamp(22 + tempFactor * 42 + drySpell * 22 + clamp01(moderateRh) * 14, 12, 95));
+          const trigger =
+            w.temp >= 24 && w.rain7d < 15
+              ? `Temperatura cálida (${w.temp.toFixed(1)} °C) con baja lluvia reciente (${w.rain7d} mm) acelera oviposición.`
+              : `Actividad larval moderada bajo temperatura de ${w.temp.toFixed(1)} °C.`;
+          return { score, trigger };
+        }
+      },
+      {
+        id: 'pulgon_amarillo',
+        name: 'Pulgón amarillo del sorgo',
+        scientific: 'Melanaphis sacchari',
+        icon: '🦟',
+        crops: ['sorgo', 'maiz'],
+        cropsText: 'Sorgo y Maíz',
+        inspect: 'Inspeccionar el envés de hojas basales buscando colonias amarillas y mielecilla brillante (fumagina).',
+        mip: 'Conservar catarinas y crisopas nativas, eliminar zacate Johnson en bordos y evitar exceso de fertilización nitrogenada.',
+        evaluate: (w) => {
+          const heat = clamp01((w.temp - 21) / 10);
+          const dryness = clamp01((62 - w.rh) / 38);
+          const lowRain = clamp01((20 - w.rain7d) / 20);
+          const score = Math.round(clamp(18 + heat * 40 + dryness * 26 + lowRain * 16, 10, 96));
+          const trigger =
+            w.rh < 52 && w.temp >= 23.5
+              ? `Ambiente cálido y seco (HR ${w.rh}%, ${w.temp.toFixed(1)} °C) favorece reproducción exponencial.`
+              : `Condiciones de humedad relativa (${w.rh}%) limitan parcialmente la dispersión alada.`;
+          return { score, trigger };
+        }
+      },
+      {
+        id: 'palomilla_dorso_diamante',
+        name: 'Palomilla dorso de diamante',
+        scientific: 'Plutella xylostella',
+        icon: '🦋',
+        crops: ['brocoli'],
+        cropsText: 'Brócoli y Hortalizas',
+        inspect: 'Revisar hojas jóvenes y formación de pella en busca de raspaduras y larvas verde claro muy activas.',
+        mip: 'Rotar ingredientes activos por generación, destruir socas inmediatamente tras cosecha y usar trampas pegajosas.',
+        evaluate: (w) => {
+          const warm = clamp01((w.temp - 18) / 12);
+          const lowWash = clamp01((22 - w.rain7d) / 22);
+          const score = Math.round(clamp(25 + warm * 44 + lowWash * 24, 15, 95));
+          const trigger =
+            w.rain7d < 12
+              ? `Escasa lluvia de lavado (${w.rain7d} mm en 7 días) permite alta supervivencia de larvas neonatas.`
+              : `Lluvias acumuladas (${w.rain7d} mm) reducen parcialmente la población en follaje.`;
+          return { score, trigger };
+        }
+      },
+      {
+        id: 'mosquita_blanca_trips',
+        name: 'Mosquita blanca y Trips',
+        scientific: 'Bemisia tabaci / Frankliniella spp.',
+        icon: '🪰',
+        crops: ['brocoli', 'alfalfa'],
+        cropsText: 'Hortalizas y Alfalfa',
+        inspect: 'Sacudir brotes tiernos sobre hoja blanca y revisar trampas cromáticas amarillas y azules en bordes.',
+        mip: 'Instalar barreras vivas, aplicar jabón potásico o aceite de neem y controlar malezas hospederas en canales.',
+        evaluate: (w) => {
+          const hotDry = clamp01((w.temp - 20) / 11) * 0.55 + clamp01((60 - w.rh) / 35) * 0.45;
+          const soilDry = clamp01((50 - w.soil) / 40);
+          const score = Math.round(clamp(20 + hotDry * 54 + soilDry * 20, 12, 95));
+          const trigger =
+            w.rh < 55 && w.temp > 23
+              ? `Baja humedad relativa (${w.rh}%) y calor (${w.temp.toFixed(1)} °C) disparan vuelos migratorios.`
+              : `Presión moderada de vectores chupadores en bordes de parcela.`;
+          return { score, trigger };
+        }
+      },
+      {
+        id: 'pulgon_manchado_alfalfa',
+        name: 'Pulgón manchado de la alfalfa',
+        scientific: 'Therioaphis maculata',
+        icon: '🪲',
+        crops: ['alfalfa'],
+        cropsText: 'Alfalfa forrajera',
+        inspect: 'Revisar tallos inferiores y rebrote recién cortado buscando amarillamiento de nervaduras y caída de hoja.',
+        mip: 'Adelantar corte de aprovechamiento si se supera umbral económico y favorecer parasitoides (Trioxys complanatus).',
+        evaluate: (w) => {
+          const warm = clamp01((w.temp - 20) / 10);
+          const dry = clamp01((58 - w.rh) / 34);
+          const score = Math.round(clamp(20 + warm * 45 + dry * 28, 12, 94));
+          const trigger =
+            w.temp >= 23 && w.rh <= 54
+              ? `Combinación de calor (${w.temp.toFixed(1)} °C) y aire seco (${w.rh}%) acelera daño en rebrote.`
+              : `Desarrollo contenido por temperatura media actual (${w.temp.toFixed(1)} °C).`;
+          return { score, trigger };
+        }
+      },
+      {
+        id: 'gallina_ciega',
+        name: 'Gallina ciega (complejo rizófago)',
+        scientific: 'Phyllophaga spp.',
+        icon: '🪱',
+        crops: ['maiz', 'cebada', 'sorgo'],
+        cropsText: 'Maíz, Cebada y Sorgo',
+        inspect: 'Muestrear 5 puntos de 30×30×30 cm en suelo antes o después de primeras lluvias buscando larvas en raíces.',
+        mip: 'Barbecho profundo para exposición solar, trampas de luz para adultos (mayates) y hongos entomopatógenos (Metarhizium).',
+        evaluate: (w) => {
+          const soilMoist = clamp01((w.soil - 28) / 45);
+          const rainPulse = clamp01(w.rain7d / 35);
+          const score = Math.round(clamp(16 + soilMoist * 46 + rainPulse * 28, 10, 92));
+          const trigger =
+            w.soil >= 45 || w.rain7d >= 18
+              ? `Humedad en suelo (${w.soil}%) y lluvia reciente (${w.rain7d} mm) activan movilidad larval en zona radicular.`
+              : `Suelo relativamente seco (${w.soil}%) mantiene larvas a mayor profundidad.`;
+          return { score, trigger };
+        }
+      },
+      {
+        id: 'mildiu_cenicilla',
+        name: 'Mildiu y Cenicilla foliar',
+        scientific: 'Peronospora parasitica / Erysiphe spp.',
+        icon: '🍄',
+        crops: ['brocoli', 'cebada', 'alfalfa'],
+        cropsText: 'Brócoli, Cebada y Alfalfa',
+        inspect: 'Revisar hojas bajeras sombreadas en busca de manchas cloróticas angulares y vellosidad blanquecina.',
+        mip: 'Evitar riegos por aspersión nocturnos, mejorar ventilación de surcos y aplicar biofungicidas preventivos (Bacillus subtilis).',
+        evaluate: (w) => {
+          const highRh = clamp01((w.rh - 52) / 38);
+          const wetSoil = clamp01((w.soil - 40) / 45);
+          const rain = clamp01(w.rain7d / 45);
+          const score = Math.round(clamp(14 + highRh * 44 + wetSoil * 22 + rain * 16, 10, 95));
+          const trigger =
+            w.rh >= 65 || w.rain7d >= 22
+              ? `Alta humedad relativa (${w.rh}%) y follaje húmedo favorecen germinación de esporas.`
+              : `Baja humedad ambiental (${w.rh}%) restringe infecciones fúngicas foliares.`;
+          return { score, trigger };
+        }
+      }
+    ];
+
+    // =========================================================================
+    // 3. ESTADO GLOBAL DE LA APLICACIÓN
+    // =========================================================================
+    const state = {
+      municipalityId: 'el_marques',
+      sectorId: 'em_chichimequillas',
+      selectedCrop: 'ALL',
+      mode: 'live',
+      mapBase: 'light',
+      weatherCache: {},
+      simWeather: { temp: 24.0, rh: 55, rain7d: 12, soil: 45 },
+      officialBoundaries: {},
+      clippedSectorsCache: {},
+      map: null,
+      tileLayers: {},
+      maskLayer: null,
+      neighborLayer: null,
+      activeBorderLayer: null,
+      sectorLayers: {}
+    };
+
+    function clamp(val, min, max) {
+      return Math.min(Math.max(val, min), max);
+    }
+
+    function clamp01(val) {
+      return clamp(val, 0, 1);
+    }
+
+    function getRiskMeta(score) {
+      if (score >= 70) {
+        return {
+          label: 'Alto',
+          colorHex: '#e11d48',
+          fillHex: '#f43f5e',
+          badgeClass: 'bg-rose-50 text-rose-800 border-rose-200',
+          barClass: 'bg-rose-600'
+        };
+      }
+      if (score >= 40) {
+        return {
+          label: 'Moderado',
+          colorHex: '#d97706',
+          fillHex: '#f59e0b',
+          badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
+          barClass: 'bg-amber-500'
+        };
+      }
+      return {
+        label: 'Bajo',
+        colorHex: '#059669',
+        fillHex: '#10b981',
+        badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+        barClass: 'bg-emerald-500'
+      };
+    }
+
+    function showToast(message, type = 'info') {
+      const box = document.getElementById('toastBox');
+      if (!box) return;
+      const colors = {
+        info: 'bg-slate-900 text-white border-slate-700',
+        success: 'bg-emerald-900 text-emerald-50 border-emerald-700',
+        warning: 'bg-amber-900 text-amber-50 border-amber-700'
+      };
+      const toast = document.createElement('div');
+      toast.className = `px-4 py-2.5 rounded-xl border shadow-lg text-xs font-semibold transition-opacity duration-300 ${colors[type] || colors.info}`;
+      toast.textContent = message;
+      box.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 320);
+      }, 3400);
+    }
+
+    // =========================================================================
+    // 4. TELEMETRÍA AGROCLIMÁTICA NASA POWER (CON RESPALDO REGIONAL)
+    // =========================================================================
+    function formatDateYYYYMMDD(dateObj) {
+      const y = dateObj.getUTCFullYear();
+      const m = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+      const d = String(dateObj.getUTCDate()).padStart(2, '0');
+      return `${y}${m}${d}`;
+    }
+
+    async function fetchSectorWeatherFromNASA(sector) {
+      if (state.weatherCache[sector.id]) {
+        return state.weatherCache[sector.id];
+      }
+
+      const endObj = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000);
+      const startObj = new Date(endObj.getTime() - 9 * 24 * 60 * 60 * 1000);
+      const startStr = formatDateYYYYMMDD(startObj);
+      const endStr = formatDateYYYYMMDD(endObj);
+
+      const url =
+        'https://power.larc.nasa.gov/api/temporal/daily/point' +
+        '?parameters=T2M,T2M_MAX,RH2M,PRECTOTCORR,GWETTOP' +
+        '&community=AG' +
+        `&longitude=${sector.lon.toFixed(4)}` +
+        `&latitude=${sector.lat.toFixed(4)}` +
+        `&start=${startStr}&end=${endStr}&format=JSON`;
+
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 7500);
+        const resp = await fetch(url, { signal: controller.signal });
+        clearTimeout(timer);
+
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const json = await resp.json();
+        const params = json?.properties?.parameter;
+        if (!params || !params.T2M) throw new Error('Sin parámetros NASA POWER');
+
+        const validValues = (obj) =>
+          Object.entries(obj || {})
+            .filter(([, v]) => typeof v === 'number' && v > -900)
+            .sort(([a], [b]) => a.localeCompare(b));
+
+        const t2mArr = validValues(params.T2M);
+        const tMaxArr = validValues(params.T2M_MAX);
+        const rhArr = validValues(params.RH2M);
+        const rainArr = validValues(params.PRECTOTCORR);
+        const soilArr = validValues(params.GWETTOP);
+
+        if (t2mArr.length === 0 || rhArr.length === 0) {
+          throw new Error('Series incompletas en ventana');
+        }
+
+        const latestT2m = t2mArr[t2mArr.length - 1][1];
+        const latestDateRaw = t2mArr[t2mArr.length - 1][0];
+        const latestTMax = tMaxArr.length ? tMaxArr[tMaxArr.length - 1][1] : latestT2m + 6.5;
+        const latestRh = rhArr[rhArr.length - 1][1];
+        const last7Rain = rainArr.slice(-7).reduce((acc, [, v]) => acc + Math.max(0, v), 0);
+        const latestSoil = soilArr.length
+          ? Math.round(clamp(soilArr[soilArr.length - 1][1] * 100, 5, 98))
+          : sector.baseline.soil;
+
+        const formattedDate = `${latestDateRaw.slice(0, 4)}-${latestDateRaw.slice(4, 6)}-${latestDateRaw.slice(6, 8)}`;
+
+        const telemetry = {
+          temp: Number(latestT2m.toFixed(1)),
+          tempMax: Number(latestTMax.toFixed(1)),
+          rh: Math.round(clamp(latestRh, 15, 99)),
+          rain7d: Math.round(last7Rain),
+          soil: latestSoil,
+          source: `🛰️ NASA POWER · ${formattedDate}`,
+          dateLabel: formattedDate
+        };
+        state.weatherCache[sector.id] = telemetry;
+        return telemetry;
+      } catch (err) {
+        const fallback = {
+          ...sector.baseline,
+          source: '📊 Perfil agroclimático regional · Querétaro',
+          dateLabel: 'Referencia local'
+        };
+        state.weatherCache[sector.id] = fallback;
+        return fallback;
+      }
+    }
+
+    async function loadAllMunicipalityWeather(munId) {
+      const mun = MUNICIPALITIES[munId];
+      if (!mun) return;
+      await Promise.all(mun.sectors.map((sec) => fetchSectorWeatherFromNASA(sec)));
+    }
+
+    function getActiveWeatherForSector(sector) {
+      if (state.mode === 'simulator') {
+        return {
+          temp: state.simWeather.temp,
+          tempMax: Number((state.simWeather.temp + 6.2).toFixed(1)),
+          rh: state.simWeather.rh,
+          rain7d: state.simWeather.rain7d,
+          soil: state.simWeather.soil,
+          source: '🎛️ Simulador climático activo',
+          dateLabel: 'Simulación'
+        };
+      }
+      return (
+        state.weatherCache[sector.id] || {
+          ...sector.baseline,
+          source: '📊 Referencia local',
+          dateLabel: 'Base'
+        }
+      );
+    }
+
+    // =========================================================================
+    // 5A. MOTOR DE EVALUACIÓN FITOSANITARIA POR SECTOR
+    // =========================================================================
+    function evaluateSectorPests(sector, weather) {
+      const filteredPests = PEST_CATALOG.filter((pest) => {
+        if (state.selectedCrop !== 'ALL') {
+          return pest.crops.includes(state.selectedCrop);
+        }
+        return pest.crops.some((c) => sector.crops.includes(c));
+      });
+
+      const listToEval = filteredPests.length > 0 ? filteredPests : PEST_CATALOG;
+      const evaluated = listToEval
+        .map((pest) => {
+          const res = pest.evaluate(weather);
+          return {
+            ...pest,
+            score: res.score,
+            trigger: res.trigger,
+            meta: getRiskMeta(res.score)
+          };
+        })
+        .sort((a, b) => b.score - a.score);
+
+      const topScores = evaluated.slice(0, 3).map((item) => item.score);
+      const avgTop = topScores.reduce((acc, v) => acc + v, 0) / Math.max(topScores.length, 1);
+      const overallScore = Math.round(avgTop);
+
+      return {
+        pests: evaluated,
+        overallScore,
+        overallMeta: getRiskMeta(overallScore)
+      };
+    }
+
+    // =========================================================================
+    // 5B. DESCARGA Y RECONSTRUCCIÓN DE LÍMITES OFICIALES MGN/OSM (SIN SIMPLIFICAR)
+    // =========================================================================
+    function buildFallbackFeature(mun) {
+      const ringLonLat = mun.polygon.map(([lat, lon]) => [lon, lat]);
+      return turf.polygon([ringLonLat], { id: mun.id, name: mun.name, cvegeo: mun.cvegeo });
+    }
+
+    function countFeatureVertices(feature) {
+      if (!feature || !feature.geometry) return 0;
+      const geom = feature.geometry;
+      let count = 0;
+      if (geom.type === 'Polygon') {
+        geom.coordinates.forEach((ring) => {
+          count += ring.length;
+        });
+      } else if (geom.type === 'MultiPolygon') {
+        geom.coordinates.forEach((poly) => {
+          poly.forEach((ring) => {
+            count += ring.length;
+          });
+        });
+      }
+      return count;
+    }
+
+    function createBoundaryRecord(munId, feature, sourceLabel) {
+      const areaKm2 = Number((turf.area(feature) / 1000000).toFixed(2));
+      const vertexCount = countFeatureVertices(feature);
+      return { feature, sourceLabel, vertexCount, areaKm2 };
+    }
+
+    async function fetchBoundariesFromNominatim() {
+      const url =
+        'https://nominatim.openstreetmap.org/lookup' +
+        '?osm_ids=R5605767,R5605684' +
+        '&format=geojson' +
+        '&polygon_geojson=1' +
+        '&polygon_threshold=0.0';
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 9000);
+      const resp = await fetch(url, {
+        signal: controller.signal,
+        headers: { Accept: 'application/json' }
+      });
+      clearTimeout(timeoutId);
+
+      if (!resp.ok) throw new Error(`Nominatim HTTP ${resp.status}`);
+      const geojson = await resp.json();
+      if (!geojson || !Array.isArray(geojson.features) || geojson.features.length < 2) {
+        throw new Error('Nominatim no devolvió ambos polígonos municipales');
+      }
+
+      const parsed = {};
+      geojson.features.forEach((feat) => {
+        const osmId = Number(feat.properties?.osm_id);
+        const type = feat.geometry?.type;
+        if (type !== 'Polygon' && type !== 'MultiPolygon') return;
+
+        if (osmId === 5605767) {
+          parsed.el_marques = createBoundaryRecord(
+            'el_marques',
+            feat,
+            'Delimitación oficial MGN/OSM · Nominatim'
+          );
+        } else if (osmId === 5605684) {
+          parsed.colon = createBoundaryRecord(
+            'colon',
+            feat,
+            'Delimitación oficial MGN/OSM · Nominatim'
+          );
+        }
+      });
+
+      if (!parsed.el_marques || !parsed.colon) {
+        throw new Error('Faltó uno de los municipios en respuesta Nominatim');
+      }
+      return parsed;
+    }
+
+    function coordsClose(a, b, eps = 1e-6) {
+      return Math.abs(a[0] - b[0]) <= eps && Math.abs(a[1] - b[1]) <= eps;
+    }
+
+    function assembleOverpassRings(ways) {
+      const unused = ways
+        .filter((w) => Array.isArray(w.geometry) && w.geometry.length >= 2)
+        .map((w) => w.geometry.map((pt) => [pt.lon, pt.lat]));
+
+      const rings = [];
+      while (unused.length > 0) {
+        let ring = [...unused.shift()];
+        let extended = true;
+
+        while (extended && !coordsClose(ring[0], ring[ring.length - 1])) {
+          extended = false;
+          for (let i = 0; i < unused.length; i++) {
+            const seg = unused[i];
+            const head = ring[0];
+            const tail = ring[ring.length - 1];
+            const segStart = seg[0];
+            const segEnd = seg[seg.length - 1];
+
+            if (coordsClose(tail, segStart)) {
+              ring = ring.concat(seg.slice(1));
+              unused.splice(i, 1);
+              extended = true;
+              break;
+            } else if (coordsClose(tail, segEnd)) {
+              ring = ring.concat([...seg].reverse().slice(1));
+              unused.splice(i, 1);
+              extended = true;
+              break;
+            } else if (coordsClose(head, segEnd)) {
+              ring = seg.slice(0, -1).concat(ring);
+              unused.splice(i, 1);
+              extended = true;
+              break;
+            } else if (coordsClose(head, segStart)) {
+              ring = [...seg].reverse().slice(0, -1).concat(ring);
+              unused.splice(i, 1);
+              extended = true;
+              break;
+            }
+          }
+        }
+
+        if (!coordsClose(ring[0], ring[ring.length - 1])) {
+          ring.push([...ring[0]]);
+        }
+        if (ring.length >= 4) {
+          rings.push(ring);
+        }
+      }
+
+      if (rings.length === 0) return null;
+      if (rings.length === 1) return turf.polygon([rings[0]]);
+      return turf.multiPolygon(rings.map((r) => [r]));
+    }
+
+    async function fetchBoundariesFromOverpass() {
+      const query = '[out:json][timeout:25];(relation(5605767);relation(5605684););out geom;';
+      const url = 'https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(query);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 11000);
+      const resp = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if (!resp.ok) throw new Error(`Overpass HTTP ${resp.status}`);
+      const data = await resp.json();
+      const elements = data?.elements || [];
+
+      const parsed = {};
+      elements.forEach((el) => {
+        if (el.type !== 'relation' || !Array.isArray(el.members)) return;
+        const outerWays = el.members.filter(
+          (m) => m.type === 'way' && (m.role === 'outer' || m.role === '')
+        );
+        const feat = assembleOverpassRings(outerWays);
+        if (!feat) return;
+
+        if (Number(el.id) === 5605767) {
+          parsed.el_marques = createBoundaryRecord(
+            'el_marques',
+            feat,
+            'Delimitación oficial MGN/OSM · Overpass'
+          );
+        } else if (Number(el.id) === 5605684) {
+          parsed.colon = createBoundaryRecord(
+            'colon',
+            feat,
+            'Delimitación oficial MGN/OSM · Overpass'
+          );
+        }
+      });
+
+      if (!parsed.el_marques || !parsed.colon) {
+        throw new Error('Overpass no devolvió ambas relaciones municipales');
+      }
+      return parsed;
+    }
+
+    async function loadOfficialBoundaries(forceRefresh = false) {
+      if (!state.officialBoundaries.el_marques || !state.officialBoundaries.colon) {
+        state.officialBoundaries.el_marques = createBoundaryRecord(
+          'el_marques',
+          buildFallbackFeature(MUNICIPALITIES.el_marques),
+          'Polígono local de respaldo'
+        );
+        state.officialBoundaries.colon = createBoundaryRecord(
+          'colon',
+          buildFallbackFeature(MUNICIPALITIES.colon),
+          'Polígono local de respaldo'
+        );
+      }
+
+      if (!forceRefresh) {
+        try {
+          const cachedRaw = localStorage.getItem(BOUNDARY_CACHE_KEY);
+          if (cachedRaw) {
+            const cached = JSON.parse(cachedRaw);
+            if (cached?.el_marques?.feature && cached?.colon?.feature) {
+              state.officialBoundaries = cached;
+              state.clippedSectorsCache = {};
+              return;
+            }
+          }
+        } catch (e) {}
+      }
+
+      try {
+        const fresh = await fetchBoundariesFromNominatim();
+        state.officialBoundaries = fresh;
+        state.clippedSectorsCache = {};
+        try {
+          localStorage.setItem(BOUNDARY_CACHE_KEY, JSON.stringify(fresh));
+        } catch (e) {}
+      } catch (errNominatim) {
+        try {
+          const freshOverpass = await fetchBoundariesFromOverpass();
+          state.officialBoundaries = freshOverpass;
+          state.clippedSectorsCache = {};
+          try {
+            localStorage.setItem(BOUNDARY_CACHE_KEY, JSON.stringify(freshOverpass));
+          } catch (e) {}
+        } catch (errOverpass) {
+          state.clippedSectorsCache = {};
+        }
+      }
+    }
+
+    async function reloadOfficialBoundaries() {
+      showToast('Descargando límites oficiales MGN/OSM sin simplificación...', 'info');
+      await loadOfficialBoundaries(true);
+      renderMapLayers(true);
+      const rec = state.officialBoundaries[state.municipalityId];
+      showToast(
+        `${MUNICIPALITIES[state.municipalityId].name}: ${rec.vertexCount.toLocaleString('es-MX')} vértices cargados.`,
+        'success'
+      );
+    }
+
+    // =========================================================================
+    // 5C. RECORTE DE MÁSCARA INVERSA Y SUBDIVISIÓN VORONOI CON TURF.JS
+    // =========================================================================
+    function buildInverseMaskFeature(munFeature) {
+      const worldOuter = [
+        [-118.0, 12.0],
+        [-84.0, 12.0],
+        [-84.0, 34.0],
+        [-118.0, 34.0],
+        [-118.0, 12.0]
+      ];
+      const holes = [];
+      const geom = munFeature.geometry;
+      if (geom.type === 'Polygon') {
+        holes.push(geom.coordinates[0]);
+      } else if (geom.type === 'MultiPolygon') {
+        geom.coordinates.forEach((poly) => {
+          if (poly[0]) holes.push(poly[0]);
+        });
+      }
+      return turf.polygon([worldOuter, ...holes]);
+    }
+
+    function buildFallbackGridSectors(mun, munFeature, paddedBbox) {
+      const [minX, minY, maxX, maxY] = paddedBbox;
+      const steps = 16;
+      const dx = (maxX - minX) / steps;
+      const dy = (maxY - minY) / steps;
+      const results = [];
+
+      for (let ix = 0; ix < steps; ix++) {
+        for (let iy = 0; iy < steps; iy++) {
+          const x0 = minX + ix * dx;
+          const y0 = minY + iy * dy;
+          const cell = turf.polygon([[
+            [x0, y0], [x0 + dx, y0], [x0 + dx, y0 + dy], [x0, y0 + dy], [x0, y0]
+          ]]);
+          const clipped = turf.intersect(turf.featureCollection([cell, munFeature]));
+          if (!clipped || !clipped.geometry) continue;
+
+          const cx = x0 + dx / 2;
+          const cy = y0 + dy / 2;
+          let bestSec = mun.sectors[0];
+          let bestDist = Infinity;
+          mun.sectors.forEach((s) => {
+            const d = Math.hypot(s.lon - cx, s.lat - cy);
+            if (d < bestDist) {
+              bestDist = d;
+              bestSec = s;
+            }
+          });
+          results.push({
+            sectorId: bestSec.id,
+            feature: clipped,
+            labelLatLng: [bestSec.lat, bestSec.lon]
+          });
+        }
+      }
+      return results;
+    }
+
+    function getClippedSectorsForMunicipality(munId) {
+      if (state.clippedSectorsCache[munId]) {
+        return state.clippedSectorsCache[munId];
+      }
+
+      const mun = MUNICIPALITIES[munId];
+      const munRec = state.officialBoundaries[munId];
+      const munFeature = munRec.feature;
+      const bbox = turf.bbox(munFeature);
+      const paddedBbox = [bbox[0] - 0.08, bbox[1] - 0.08, bbox[2] + 0.08, bbox[3] + 0.08];
+
+      const clippedList = [];
+      try {
+        const pointsFC = turf.featureCollection(
+          mun.sectors.map((s, idx) => turf.point([s.lon, s.lat], { idx, sectorId: s.id }))
+        );
+        const voronoiFC = turf.voronoi(pointsFC, { bbox: paddedBbox });
+
+        mun.sectors.forEach((sec, idx) => {
+          const cell = voronoiFC?.features?.[idx];
+          if (!cell || !cell.geometry) return;
+
+          const clipped = turf.intersect(turf.featureCollection([cell, munFeature]));
+          if (!clipped || !clipped.geometry) return;
+
+          const secPt = turf.point([sec.lon, sec.lat]);
+          let labelLatLng = [sec.lat, sec.lon];
+          if (!turf.booleanPointInPolygon(secPt, clipped)) {
+            const interiorPt = turf.pointOnFeature(clipped);
+            labelLatLng = [
+              interiorPt.geometry.coordinates[1],
+              interiorPt.geometry.coordinates[0]
+            ];
+          }
+
+          clippedList.push({
+            sectorId: sec.id,
+            feature: clipped,
+            labelLatLng
+          });
+        });
+
+        if (clippedList.length === 0) {
+          throw new Error('Voronoi sin celdas intersectadas');
+        }
+      } catch (err) {
+        const fallbackCells = buildFallbackGridSectors(mun, munFeature, paddedBbox);
+        state.clippedSectorsCache[munId] = fallbackCells;
+        return fallbackCells;
+      }
+
+      state.clippedSectorsCache[munId] = clippedList;
+      return clippedList;
+    }
+
+    // =========================================================================
+    // 6. INICIALIZACIÓN Y ACTUALIZACIÓN DEL MAPA LEAFLET
+    // =========================================================================
+    function initMap() {
+      const mun = MUNICIPALITIES[state.municipalityId];
+      const qroBounds = L.latLngBounds(
+        L.latLng(19.95, -100.85),
+        L.latLng(21.75, -98.95)
+      );
+
+      state.map = L.map('pestMap', {
+        center: mun.center,
+        zoom: mun.zoom,
+        minZoom: 9,
+        maxZoom: 17,
+        maxBounds: qroBounds,
+        maxBoundsViscosity: 0.85,
+        zoomControl: true
+      });
+
+      state.tileLayers.light = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+        {
+          attribution: 'Tiles &copy; Esri &mdash; Esri, HERE, Garmin, FAO, NOAA, USGS',
+          maxZoom: 18
+        }
+      );
+
+      state.tileLayers.satellite = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        {
+          attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics',
+          maxZoom: 18
+        }
+      );
+
+      state.tileLayers.relief = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+        {
+          attribution: 'Tiles &copy; Esri &mdash; Esri, USGS, NOAA',
+          maxZoom: 18
+        }
+      );
+
+      state.tileLayers.labels = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+        {
+          attribution: 'Labels &copy; Esri',
+          maxZoom: 18,
+          opacity: 0.88
+        }
+      );
+
+      state.tileLayers.light.addTo(state.map);
+      state.tileLayers.labels.addTo(state.map);
+
+      state.map.on('click', handleMapSpatialClick);
+
+      window.addEventListener('resize', () => {
+        if (state.map) state.map.invalidateSize();
+      });
+    }
+
+    function setMapBaseLayer(layerType) {
+      state.mapBase = layerType;
+      const btns = {
+        light: document.getElementById('mapLightBtn'),
+        satellite: document.getElementById('mapSatBtn'),
+        relief: document.getElementById('mapReliefBtn')
+      };
+
+      ['light', 'satellite', 'relief'].forEach((key) => {
+        if (state.map.hasLayer(state.tileLayers[key])) {
+          state.map.removeLayer(state.tileLayers[key]);
+        }
+        if (btns[key]) {
+          btns[key].className =
+            key === layerType
+              ? 'px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-white text-slate-900 shadow-sm'
+              : 'px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer text-slate-600 hover:text-slate-900';
+        }
+      });
+
+      state.tileLayers[layerType].addTo(state.map);
+      state.tileLayers.labels.bringToFront();
+    }
+
+    function hideNeighborBanner() {
+      const banner = document.getElementById('neighborSwitchBanner');
+      if (banner) banner.classList.add('hidden');
+    }
+
+    function showNeighborBanner(neighborMun) {
+      const banner = document.getElementById('neighborSwitchBanner');
+      const textEl = document.getElementById('neighborSwitchText');
+      const btnEl = document.getElementById('neighborSwitchActionBtn');
+      if (!banner || !textEl || !btnEl) return;
+
+      textEl.textContent = `📍 Punto ubicado dentro del municipio colindante: ${neighborMun.name} · CVEGEO ${neighborMun.cvegeo}.`;
+      btnEl.textContent = `Cambiar a ${neighborMun.name}`;
+      btnEl.onclick = () => {
+        hideNeighborBanner();
+        selectMunicipality(neighborMun.id);
+      };
+      banner.classList.remove('hidden');
+    }
+
+    function handleMapSpatialClick(e) {
+      const activeMunId = state.municipalityId;
+      const neighborMunId = activeMunId === 'el_marques' ? 'colon' : 'el_marques';
+      const activeRec = state.officialBoundaries[activeMunId];
+      const neighborRec = state.officialBoundaries[neighborMunId];
+      if (!activeRec || !neighborRec) return;
+
+      const pt = turf.point([e.latlng.lng, e.latlng.lat]);
+
+      if (turf.booleanPointInPolygon(pt, activeRec.feature)) {
+        hideNeighborBanner();
+        const clippedSectors = getClippedSectorsForMunicipality(activeMunId);
+        const matched = clippedSectors.find((item) =>
+          turf.booleanPointInPolygon(pt, item.feature)
+        );
+        if (matched) {
+          selectSector(matched.sectorId, false);
+          return;
+        }
+        const mun = MUNICIPALITIES[activeMunId];
+        let nearest = mun.sectors[0];
+        let minD = Infinity;
+        mun.sectors.forEach((s) => {
+          const d = Math.hypot(s.lon - e.latlng.lng, s.lat - e.latlng.lat);
+          if (d < minD) {
+            minD = d;
+            nearest = s;
+          }
+        });
+        selectSector(nearest.id, false);
+        return;
+      }
+
+      if (turf.booleanPointInPolygon(pt, neighborRec.feature)) {
+        showNeighborBanner(MUNICIPALITIES[neighborMunId]);
+        return;
+      }
+
+      hideNeighborBanner();
+      showToast(
+        'Punto fuera del perímetro municipal monitoreado de El Marqués y Colón, Qro.',
+        'warning'
+      );
+    }
+
+    function renderMapLayers(fitMunicipality = false) {
+      if (!state.map) return;
+      const activeMunId = state.municipalityId;
+      const neighborMunId = activeMunId === 'el_marques' ? 'colon' : 'el_marques';
+      const mun = MUNICIPALITIES[activeMunId];
+      const neighborMun = MUNICIPALITIES[neighborMunId];
+
+      const activeRec = state.officialBoundaries[activeMunId];
+      const neighborRec = state.officialBoundaries[neighborMunId];
+      if (!activeRec || !neighborRec) return;
+
+      const precisionBadge = document.getElementById('boundaryPrecisionBadge');
+      const areaBadge = document.getElementById('boundaryAreaBadge');
+      if (precisionBadge) {
+        precisionBadge.textContent = `${activeRec.sourceLabel} · ${activeRec.vertexCount.toLocaleString('es-MX')} vértices · smoothFactor: 0`;
+      }
+      if (areaBadge) {
+        areaBadge.textContent = `Superficie geodésica: ${activeRec.areaKm2.toLocaleString('es-MX')} km²`;
+      }
+
+      if (state.maskLayer) state.map.removeLayer(state.maskLayer);
+      if (state.neighborLayer) state.map.removeLayer(state.neighborLayer);
+      if (state.activeBorderLayer) state.map.removeLayer(state.activeBorderLayer);
+      Object.values(state.sectorLayers).forEach((grp) => state.map.removeLayer(grp));
+      state.sectorLayers = {};
+
+      // 1. Máscara inversa exterior
+      const maskGeoJson = buildInverseMaskFeature(activeRec.feature);
+      state.maskLayer = L.geoJSON(maskGeoJson, {
+        smoothFactor: 0,
+        interactive: false,
+        style: {
+          color: 'transparent',
+          weight: 0,
+          fillColor: '#0f172a',
+          fillOpacity: 0.44
+        }
+      }).addTo(state.map);
+
+      // 2. Contorno punteado del municipio vecino
+      const neighborLayerGroup = L.layerGroup();
+      const neighborPolyLayer = L.geoJSON(neighborRec.feature, {
+        smoothFactor: 0,
+        style: {
+          color: '#475569',
+          weight: 2,
+          dashArray: '6, 6',
+          fillColor: '#94a3b8',
+          fillOpacity: 0.05
+        }
+      });
+      neighborPolyLayer.on('click', (ev) => {
+        L.DomEvent.stopPropagation(ev);
+        showNeighborBanner(neighborMun);
+      });
+      neighborLayerGroup.addLayer(neighborPolyLayer);
+
+      const neighborCenterPt = turf.pointOnFeature(neighborRec.feature);
+      const neighborMarker = L.marker(
+        [neighborCenterPt.geometry.coordinates[1], neighborCenterPt.geometry.coordinates[0]],
+        {
+          icon: L.divIcon({
+            html: `<div class="neighbor-label">Municipio vecino: ${neighborMun.name}</div>`,
+            className: '',
+            iconSize: [168, 24],
+            iconAnchor: [84, 12]
+          })
+        }
+      );
+      neighborMarker.on('click', (ev) => {
+        L.DomEvent.stopPropagation(ev);
+        showNeighborBanner(neighborMun);
+      });
+      neighborLayerGroup.addLayer(neighborMarker);
+      neighborLayerGroup.addTo(state.map);
+      state.neighborLayer = neighborLayerGroup;
+
+      // 3. Subdivisión sectorial recortada al polígono del municipio activo
+      const clippedSectors = getClippedSectorsForMunicipality(activeMunId);
+      const labelPlacedForSector = {};
+
+      clippedSectors.forEach((item) => {
+        const sec = mun.sectors.find((s) => s.id === item.sectorId);
+        if (!sec) return;
+
+        const w = getActiveWeatherForSector(sec);
+        const evalData = evaluateSectorPests(sec, w);
+        const isSelected = sec.id === state.sectorId;
+        const meta = evalData.overallMeta;
+
+        const sectorPolyLayer = L.geoJSON(item.feature, {
+          smoothFactor: 0,
+          style: {
+            color: isSelected ? '#0f172a' : '#ffffff',
+            weight: isSelected ? 2.6 : 1.4,
+            fillColor: meta.fillHex,
+            fillOpacity: isSelected ? 0.56 : 0.36
+          }
+        });
+
+        sectorPolyLayer.on('mouseover', function () {
+          if (!isSelected) {
+            this.setStyle({ fillOpacity: 0.50, weight: 2.2 });
+          }
+        });
+        sectorPolyLayer.on('mouseout', function () {
+          if (!isSelected) {
+            this.setStyle({ fillOpacity: 0.36, weight: 1.4 });
+          }
+        });
+        sectorPolyLayer.on('click', (ev) => {
+          L.DomEvent.stopPropagation(ev);
+          hideNeighborBanner();
+          selectSector(sec.id, false);
+        });
+
+        if (!state.sectorLayers[sec.id]) {
+          state.sectorLayers[sec.id] = L.layerGroup().addTo(state.map);
+        }
+        state.sectorLayers[sec.id].addLayer(sectorPolyLayer);
+
+        if (!labelPlacedForSector[sec.id]) {
+          labelPlacedForSector[sec.id] = true;
+          const iconHtml = `
+            <div class="sector-pin ${isSelected ? 'selected-pin' : ''}" style="background-color: ${meta.colorHex};">
+              <span>${sec.shortName}</span>
+              <span style="background: rgba(0,0,0,0.24); padding: 1px 6px; border-radius: 999px;">${evalData.overallScore}%</span>
+            </div>
+          `;
+          const marker = L.marker(item.labelLatLng, {
+            icon: L.divIcon({
+              html: iconHtml,
+              className: '',
+              iconSize: [148, 30],
+              iconAnchor: [74, 15]
+            })
+          });
+          marker.on('click', (ev) => {
+            L.DomEvent.stopPropagation(ev);
+            hideNeighborBanner();
+            selectSector(sec.id, false);
+          });
+          state.sectorLayers[sec.id].addLayer(marker);
+        }
+      });
+
+      // 4. Frontera exterior exacta del municipio activo
+      state.activeBorderLayer = L.geoJSON(activeRec.feature, {
+        smoothFactor: 0,
+        interactive: false,
+        style: {
+          color: '#064e3b',
+          weight: 3.2,
+          fill: false
+        }
+      }).addTo(state.map);
+
+      if (fitMunicipality && state.activeBorderLayer) {
+        state.map.fitBounds(state.activeBorderLayer.getBounds(), { padding: [24, 24] });
+      }
+    }
+
+    // =========================================================================
+    // 7. ACTUALIZACIÓN DE INTERFAZ Y RENDERIZADO DE TARJETAS
+    // =========================================================================
+    function updateMunicipalityButtonsUI() {
+      const isEM = state.municipalityId === 'el_marques';
+      const btnEM = document.getElementById('headerMunElMarques');
+      const btnCO = document.getElementById('headerMunColon');
+      const badge = document.getElementById('sidebarMunBadge');
+
+      if (btnEM && btnCO) {
+        btnEM.className = isEM
+          ? 'px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer bg-white text-emerald-950 shadow-md'
+          : 'px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer bg-emerald-800/70 hover:bg-emerald-800 text-emerald-100 border border-emerald-600/50';
+
+        btnCO.className = !isEM
+          ? 'px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer bg-white text-emerald-950 shadow-md'
+          : 'px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer bg-emerald-800/70 hover:bg-emerald-800 text-emerald-100 border border-emerald-600/50';
+      }
+
+      if (badge) {
+        badge.textContent = MUNICIPALITIES[state.municipalityId].name;
+      }
+    }
+
+    function renderSectorCardsList() {
+      const mun = MUNICIPALITIES[state.municipalityId];
+      const container = document.getElementById('sectorCardsList');
+      const countBadge = document.getElementById('sectorCountBadge');
+      if (!container) return;
+
+      if (countBadge) {
+        countBadge.textContent = `${mun.sectors.length} zonas`;
+      }
+
+      container.innerHTML = mun.sectors
+        .map((sec) => {
+          const w = getActiveWeatherForSector(sec);
+          const evalData = evaluateSectorPests(sec, w);
+          const meta = evalData.overallMeta;
+          const isSelected = sec.id === state.sectorId;
+
+          return `
+            <button
+              type="button"
+              onclick="selectSector('${sec.id}', true)"
+              class="w-full text-left p-3 rounded-xl border transition cursor-pointer ${
+                isSelected
+                  ? 'bg-emerald-50/80 border-emerald-600 ring-2 ring-emerald-500/20'
+                  : 'bg-slate-50/70 hover:bg-slate-100/80 border-slate-200'
+              }"
+            >
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs sm:text-sm font-extrabold text-slate-900">
+                  ${sec.name}
+                </span>
+                <span class="px-2 py-0.5 rounded-full border text-[11px] font-extrabold ${meta.badgeClass}">
+                  ${meta.label} · ${evalData.overallScore}%
+                </span>
+              </div>
+              <div class="text-[11px] text-slate-600 mt-1">
+                🌱 ${sec.cropsLabel}
+              </div>
+            </button>
+          `;
+        })
+        .join('');
+    }
+
+    function renderActiveSectorDashboard() {
+      const mun = MUNICIPALITIES[state.municipalityId];
+      const sector = mun.sectors.find((s) => s.id === state.sectorId) || mun.sectors[0];
+      const w = getActiveWeatherForSector(sector);
+      const evalData = evaluateSectorPests(sector, w);
+      const meta = evalData.overallMeta;
+
+      document.getElementById('activeMunTag').textContent = `${mun.name} · CVEGEO ${mun.cvegeo}`;
+      document.getElementById('weatherSourceTag').textContent = w.source;
+      document.getElementById('activeSectorTitle').textContent = sector.name;
+      document.getElementById('activeSectorDesc').textContent = `${sector.description} Cultivos: ${sector.cropsLabel}.`;
+
+      const pill = document.getElementById('overallRiskPill');
+      pill.className = `px-3.5 py-2 rounded-xl border text-right ${meta.badgeClass}`;
+      document.getElementById('overallRiskValue').textContent = `${meta.label} · ${evalData.overallScore}%`;
+
+      document.getElementById('metricTemp').textContent = `${w.temp.toFixed(1)} °C`;
+      document.getElementById('metricRh').textContent = `${w.rh}%`;
+      document.getElementById('metricRain').textContent = `${w.rain7d} mm`;
+      document.getElementById('metricSoil').textContent = `${w.soil}%`;
+
+      const pestCountBadge = document.getElementById('pestCountBadge');
+      if (pestCountBadge) {
+        pestCountBadge.textContent = `${evalData.pests.length} plaga${evalData.pests.length === 1 ? '' : 's'} evaluada${evalData.pests.length === 1 ? '' : 's'}`;
+      }
+
+      const grid = document.getElementById('pestCardsGrid');
+      grid.innerHTML = evalData.pests
+        .map((p) => {
+          return `
+            <article class="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-4 flex flex-col justify-between gap-3">
+              <div class="space-y-2.5">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="flex items-center gap-2.5">
+                    <span class="text-2xl leading-none">${p.icon}</span>
+                    <div>
+                      <h4 class="text-sm font-extrabold text-slate-900 leading-snug">${p.name}</h4>
+                      <div class="text-[11px] italic text-slate-500">${p.scientific}</div>
+                    </div>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-full border text-xs font-extrabold whitespace-nowrap ${p.meta.badgeClass}">
+                    ${p.meta.label} · ${p.score}%
+                  </span>
+                </div>
+
+                <!-- Barra de intensidad -->
+                <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full ${p.meta.barClass}" style="width: ${p.score}%;"></div>
+                </div>
+
+                <div class="text-[11px] font-bold text-teal-800 bg-teal-50/80 border border-teal-100 px-2.5 py-1 rounded-lg">
+                  🌾 Cultivos afectados: ${p.cropsText}
+                </div>
+
+                <p class="text-xs text-slate-700 leading-relaxed">
+                  <strong class="text-slate-900">Condición detonante:</strong> ${p.trigger}
+                </p>
+
+                <p class="text-xs text-slate-600 leading-relaxed">
+                  <strong class="text-slate-800">🔍 Inspección en campo:</strong> ${p.inspect}
+                </p>
+              </div>
+
+              <div class="pt-2.5 border-t border-slate-100 text-xs text-emerald-950 bg-emerald-50/50 rounded-xl p-2.5">
+                <strong>🛡️ Manejo integrado (MIP):</strong> ${p.mip}
+              </div>
+            </article>
+          `;
+        })
+        .join('');
+    }
+
+    // =========================================================================
+    // 8. CONTROLADORES DE INTERACCIÓN DE USUARIO
+    // =========================================================================
+    async function selectMunicipality(munId) {
+      if (!MUNICIPALITIES[munId]) return;
+      hideNeighborBanner();
+      state.municipalityId = munId;
+      state.sectorId = MUNICIPALITIES[munId].sectors[0].id;
+
+      updateMunicipalityButtonsUI();
+      await loadAllMunicipalityWeather(munId);
+
+      syncSimulatorWithActiveSector();
+      renderSectorCardsList();
+      renderActiveSectorDashboard();
+      renderMapLayers(true);
+    }
+
+    async function selectSector(sectorId, panToSector = true) {
+      const mun = MUNICIPALITIES[state.municipalityId];
+      const sector = mun.sectors.find((s) => s.id === sectorId);
+      if (!sector) return;
+
+      state.sectorId = sectorId;
+      await fetchSectorWeatherFromNASA(sector);
+
+      syncSimulatorWithActiveSector();
+      renderSectorCardsList();
+      renderActiveSectorDashboard();
+      renderMapLayers(false);
+
+      if (panToSector && state.map) {
+        state.map.panTo([sector.lat, sector.lon], { animate: true });
+      }
+    }
+
+    function setCropFilter(cropKey) {
+      state.selectedCrop = cropKey;
+      renderSectorCardsList();
+      renderActiveSectorDashboard();
+      renderMapLayers(false);
+    }
+
+    function setDataMode(mode) {
+      state.mode = mode;
+      const liveBtn = document.getElementById('modeLiveBtn');
+      const simBtn = document.getElementById('modeSimBtn');
+      const simPanel = document.getElementById('simulatorPanel');
+
+      if (mode === 'simulator') {
+        liveBtn.className = 'py-2 px-2.5 rounded-lg text-xs font-bold transition cursor-pointer text-slate-600 hover:text-slate-900';
+        simBtn.className = 'py-2 px-2.5 rounded-lg text-xs font-bold transition cursor-pointer bg-white text-slate-900 shadow-sm';
+        simPanel.classList.remove('hidden');
+        syncSimulatorWithActiveSector();
+      } else {
+        liveBtn.className = 'py-2 px-2.5 rounded-lg text-xs font-bold transition cursor-pointer bg-white text-slate-900 shadow-sm';
+        simBtn.className = 'py-2 px-2.5 rounded-lg text-xs font-bold transition cursor-pointer text-slate-600 hover:text-slate-900';
+        simPanel.classList.add('hidden');
+      }
+
+      renderSectorCardsList();
+      renderActiveSectorDashboard();
+      renderMapLayers(false);
+    }
+
+    function syncSimulatorWithActiveSector() {
+      const mun = MUNICIPALITIES[state.municipalityId];
+      const sector = mun.sectors.find((s) => s.id === state.sectorId) || mun.sectors[0];
+      const liveW = state.weatherCache[sector.id] || sector.baseline;
+
+      state.simWeather = {
+        temp: liveW.temp,
+        rh: liveW.rh,
+        rain7d: liveW.rain7d,
+        soil: liveW.soil
+      };
+      updateSimulatorSlidersUI();
+    }
+
+    function updateSimulatorSlidersUI() {
+      const { temp, rh, rain7d, soil } = state.simWeather;
+      document.getElementById('simTempSlider').value = temp;
+      document.getElementById('simRhSlider').value = rh;
+      document.getElementById('simRainSlider').value = rain7d;
+      document.getElementById('simSoilSlider').value = soil;
+
+      document.getElementById('simTempVal').textContent = `${Number(temp).toFixed(1)} °C`;
+      document.getElementById('simRhVal').textContent = `${rh}%`;
+      document.getElementById('simRainVal').textContent = `${rain7d} mm`;
+      document.getElementById('simSoilVal').textContent = `${soil}%`;
+    }
+
+    function onSimSliderChange() {
+      state.simWeather = {
+        temp: parseFloat(document.getElementById('simTempSlider').value),
+        rh: parseInt(document.getElementById('simRhSlider').value, 10),
+        rain7d: parseInt(document.getElementById('simRainSlider').value, 10),
+        soil: parseInt(document.getElementById('simSoilSlider').value, 10)
+      };
+      updateSimulatorSlidersUI();
+      renderSectorCardsList();
+      renderActiveSectorDashboard();
+      renderMapLayers(false);
+    }
+
+    function applySimPreset(preset) {
+      const presets = {
+        hot_dry: { temp: 31.5, rh: 36, rain7d: 2, soil: 22 },
+        wet_humid: { temp: 20.5, rh: 84, rain7d: 58, soil: 78 },
+        prolonged_drought: { temp: 29.5, rh: 28, rain7d: 0, soil: 14 },
+        optimal_balanced: { temp: 22.0, rh: 54, rain7d: 14, soil: 44 }
+      };
+      const p = presets[preset];
+      if (!p) return;
+      state.simWeather = { ...p };
+      updateSimulatorSlidersUI();
+      renderSectorCardsList();
+      renderActiveSectorDashboard();
+      renderMapLayers(false);
+    }
+
+    function resetSimulatorToLive() {
+      syncSimulatorWithActiveSector();
+      renderSectorCardsList();
+      renderActiveSectorDashboard();
+      renderMapLayers(false);
+      showToast('Valores restaurados a la lectura satelital del sector.', 'info');
+    }
+
+    // =========================================================================
+    // 9. EXPORTACIÓN DE REPORTE EN CSV
+    // =========================================================================
+    function exportPestReportCSV() {
+      const mun = MUNICIPALITIES[state.municipalityId];
+      const sector = mun.sectors.find((s) => s.id === state.sectorId) || mun.sectors[0];
+      const w = getActiveWeatherForSector(sector);
+      const evalData = evaluateSectorPests(sector, w);
+
+      const headers = [
+        'Municipio',
+        'CVEGEO',
+        'Sector',
+        'Latitud',
+        'Longitud',
+        'Fuente_Clima',
+        'Temp_C',
+        'Humedad_Relativa_Pct',
+        'Lluvia_7d_mm',
+        'Humedad_Suelo_Pct',
+        'Plaga',
+        'Nombre_Cientifico',
+        'Riesgo_Pct',
+        'Nivel_Riesgo',
+        'Cultivos_Afectados',
+        'Condicion_Detonante'
+      ];
+
+      const escapeCsv = (val) => `"${String(val).replace(/"/g, '""')}"`;
+
+      const rows = evalData.pests.map((p) =>
+        [
+          mun.name,
+          mun.cvegeo,
+          sector.name,
+          sector.lat,
+          sector.lon,
+          w.source,
+          w.temp,
+          w.rh,
+          w.rain7d,
+          w.soil,
+          p.name,
+          p.scientific,
+          p.score,
+          p.meta.label,
+          p.cropsText,
+          p.trigger
+        ]
+          .map(escapeCsv)
+          .join(',')
+      );
+
+      const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `agroplagas_${mun.id}_${sector.id}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      showToast(`Reporte CSV descargado para ${sector.shortName}.`, 'success');
+    }
+
+    // =========================================================================
+    // 10. ARRANQUE INICIAL DE LA APLICACIÓN
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', async () => {
+      initMap();
+      updateMunicipalityButtonsUI();
+
+      // Cargar polígonos oficiales MGN/OSM (desde caché o API en vivo) antes del primer trazado
+      await loadOfficialBoundaries(false);
+      renderSectorCardsList();
+      renderActiveSectorDashboard();
+      renderMapLayers(true);
+
+      // Consultar datos reales de NASA POWER en segundo plano para los sectores de El Marqués
+      await loadAllMunicipalityWeather('el_marques');
+      syncSimulatorWithActiveSector();
+      renderSectorCardsList();
+      renderActiveSectorDashboard();
+      renderMapLayers(false);
+    });
+  </script>
+</body>
+</html>

@@ -5,14 +5,64 @@ from datetime import UTC, date, datetime, timedelta
 from typing import Literal
 
 from fastapi import APIRouter, Query, Request
+from pydantic import BaseModel, Field
 
-from app.analysis.agroalert_geometry import LANDMARKS, load_municipalities
+from app.analysis.agroalert_geometry import LANDMARKS, load_municipalities, municipality_feature
+from app.analysis.pest_monitor import evaluate, sectors
 from app.core.errors import error_response
 from app.services.agroalert_municipality import query_municipality
 from app.services.agroalert_power import NASADataError
 from app.services.agroalert_regional import regional_grid
+from app.services.pest_monitor import weather_by_sector
 
 router = APIRouter(prefix="/agroalert")
+
+
+class PestWeather(BaseModel):
+    temp: float | None = Field(default=None, ge=-90, le=70)
+    rh: float | None = Field(default=None, ge=0, le=100)
+    rain7d: float | None = Field(default=None, ge=0, le=3000)
+    soil: float | None = Field(default=None, ge=0, le=100)
+
+
+class PestRequest(BaseModel):
+    municipality: Literal["El Marqués", "Colón"]
+    crop: Literal["ALL", "maiz", "alfalfa", "brocoli", "sorgo", "cebada"] = "ALL"
+    weather: dict[str, PestWeather]
+
+
+@router.get("/pests/sectors")
+async def pest_sectors(municipality: Literal["El Marqués", "Colón"]):
+    return {
+        "data": {
+            "sectors": sectors(municipality),
+            "boundary": municipality_feature(municipality),
+            "data_type": "simulation",
+        },
+        "warnings": [
+            "Localidades, cultivos y celdas son ilustrativos; los límites no son linderos legales."
+        ],
+    }
+
+
+@router.get("/pests/weather")
+async def pest_weather(request: Request, municipality: Literal["El Marqués", "Colón"]):
+    return {
+        "data": {"sectors": await weather_by_sector(request.app.state.soil_power, municipality)},
+        "warnings": ["NASA POWER es una estimación de grilla, no una medición de parcela."],
+    }
+
+
+@router.post("/pests/evaluate")
+async def pest_evaluate(body: PestRequest):
+    result = []
+    for sector in sectors(body.municipality):
+        weather = body.weather.get(sector["id"], PestWeather()).model_dump()
+        result.append({"id": sector["id"], **evaluate(weather, sector["crops"], body.crop)})
+    return {
+        "data": {"sectors": result, "data_type": "simulation"},
+        "warnings": ["Índices ilustrativos no validados: no son probabilidades ni diagnósticos."],
+    }
 
 
 @router.get("/municipalities")

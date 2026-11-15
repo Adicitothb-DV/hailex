@@ -1,6 +1,7 @@
 import { navigation, type ScreenId } from '../navigation/navigation';
 import { NavigationIcon } from '../../components/NavigationIcon';
 import { useApp } from '../AppContext';
+import { useTranslation } from 'react-i18next';
 
 export function Sidebar({
   active,
@@ -10,14 +11,10 @@ export function Sidebar({
   onNavigate?: () => void;
 }) {
   const { connection } = useApp();
+  const { t } = useTranslation();
   return (
     <>
-      <a
-        className="brand"
-        href="#/dashboard"
-        onClick={onNavigate}
-        aria-label="HaiLex — ir al Dashboard"
-      >
+      <a className="brand" href="#/dashboard" onClick={onNavigate} aria-label={t('home')}>
         <span className="brand-mark" aria-hidden="true">
           <svg
             viewBox="0 0 24 24"
@@ -31,11 +28,11 @@ export function Sidebar({
           </svg>
         </span>
         <span>
-          HaiLex<span className="brand-caption">EARTH & AGRICULTURE</span>
+          HaiLex<span className="brand-caption">{t('tagline')}</span>
         </span>
       </a>
-      <p className="nav-caption">ESPACIO DE TRABAJO</p>
-      <nav aria-label="Navegación principal" className="primary-nav">
+      <p className="nav-caption">{t('workspace')}</p>
+      <nav aria-label={t('navigation')} className="primary-nav">
         {navigation.map((item) => (
           <a
             key={item.id}
@@ -44,22 +41,22 @@ export function Sidebar({
             onClick={onNavigate}
           >
             <NavigationIcon screen={item.id} />
-            <span>{item.label}</span>
+            <span>{t(item.id)}</span>
           </a>
         ))}
       </nav>
       <div className="sidebar-note">
-        <span className="sidebar-note-label">CIENCIA CON CONTEXTO</span>
-        <p>Datos, alternativas y límites. La decisión sigue en tus manos.</p>
+        <span className="sidebar-note-label">{t('science')}</span>
+        <p>{t('sidebarNote')}</p>
       </div>
       <div className="sidebar-footer">
         <span className="status-dot" aria-hidden="true" />
         <span>
           {connection === 'connected'
-            ? 'Backend disponible'
+            ? t('connected')
             : connection === 'loading'
-              ? 'Comprobando backend'
-              : 'Backend no disponible'}
+              ? t('checking')
+              : t('disconnected')}
         </span>
         <span className="version-label">V2 · UI</span>
       </div>

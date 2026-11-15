@@ -20,14 +20,15 @@ import {
 } from '../../components/Shared';
 import type { ClimatePoint, Variable, VariableId } from '../../types/api';
 import { SolarScene } from './SolarScene';
+import { useTranslation } from 'react-i18next';
 
 const variables: { id: VariableId; title: string; subtitle: string }[] = [
-  { id: 'T2M', title: 'Temperatura a 2 metros', subtitle: 'Temperatura diaria' },
-  { id: 'PRECTOTCORR', title: 'Precipitación corregida', subtitle: 'Precipitación diaria' },
+  { id: 'T2M', title: 'climateTemp', subtitle: 'climateTempDaily' },
+  { id: 'PRECTOTCORR', title: 'climateRain', subtitle: 'climateRainDaily' },
   {
     id: 'ALLSKY_SFC_SW_DWN',
-    title: 'Radiación solar',
-    subtitle: 'Irradiancia diaria en superficie',
+    title: 'climateRadiation',
+    subtitle: 'climateRadiationDaily',
   },
 ];
 function iso(date: Date) {
@@ -52,6 +53,7 @@ function Chart({
   title: string;
   subtitle: string;
 }) {
+  const { t } = useTranslation();
   const last = points
     .slice()
     .reverse()
@@ -63,36 +65,39 @@ function Chart({
           <p className="eyebrow">{id}</p>
           <h2>{title}</h2>
           <p className="muted">
-            {subtitle} · {meta?.unit ?? 'Unidad no disponible'}
+            {subtitle} · {meta?.unit ?? t('unitMissing')}
           </p>
         </div>
         <StatusBadge variant={meta?.missing_count ? 'warning' : 'success'}>
           {meta
-            ? `${meta.valid_count} válidos · ${meta.missing_count} faltantes`
-            : 'Metadatos no disponibles'}
+            ? t('counts', { valid: meta.valid_count, missing: meta.missing_count })
+            : t('metadataMissing')}
         </StatusBadge>
       </div>
       <p className="chart-latest">
         {last ? (
           <>
-            Último valor válido:{' '}
+            {t('latestValue')}{' '}
             <strong>
               {last[id]} {meta?.unit}
             </strong>{' '}
             · {last.date}
           </>
         ) : (
-          'No hay valores disponibles para este periodo.'
+          t('noPeriodValues')
         )}
       </p>
       {meta && (
         <p className="fine-print">
-          Tipo: {meta.data_type} · Resolución: {meta.spatial_resolution ?? 'no disponible'} ·{' '}
-          {meta.temporal_resolution}
+          {t('type')}: {meta.data_type} · {t('resolution')}:{' '}
+          {meta.spatial_resolution ?? t('notAvailable')} · {meta.temporal_resolution}
         </p>
       )}
       {meta?.valid_count ? (
-        <div className="chart-container" aria-label={`Serie ${title}, ${meta.unit ?? ''}`}>
+        <div
+          className="chart-container"
+          aria-label={t('seriesLabel', { title, unit: meta.unit ?? '' })}
+        >
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={points} margin={{ top: 12, right: 18, bottom: 8, left: 8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border-soft)" />
@@ -100,7 +105,7 @@ function Chart({
               <YAxis width={52} tick={{ fontSize: 11 }} domain={['auto', 'auto']} />
               <Tooltip
                 formatter={(value) => [
-                  value == null ? 'Sin dato' : `${value} ${meta.unit ?? ''}`,
+                  value == null ? t('noValue') : `${value} ${meta.unit ?? ''}`,
                   title,
                 ]}
               />
@@ -118,9 +123,7 @@ function Chart({
           </ResponsiveContainer>
         </div>
       ) : (
-        <EmptyState title="Sin datos para graficar">
-          Los valores faltantes no se sustituyen por cero.
-        </EmptyState>
+        <EmptyState title={t('noChartData')}>{t('missingNotZero')}</EmptyState>
       )}
       {meta?.limitations.map((limit) => (
         <p className="fine-print" key={limit}>
@@ -131,6 +134,7 @@ function Chart({
   );
 }
 export function ClimateIntelligencePage() {
+  const { t } = useTranslation();
   const { location, climate, queryClimate, connection } = useApp();
   const [preset, setPreset] = useState('2025');
   const [start, setStart] = useState('2025-01-01');
@@ -156,7 +160,7 @@ export function ClimateIntelligencePage() {
       end > iso(new Date()) ||
       (Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86400000 >= 366
     ) {
-      setValidation('Selecciona un periodo válido, sin fechas futuras y de hasta 366 días.');
+      setValidation('climateValidation');
       return;
     }
     setValidation('');
@@ -166,36 +170,34 @@ export function ClimateIntelligencePage() {
   return (
     <>
       <PageHeading
-        eyebrow="OBSERVACIONES Y CONTEXTO"
-        title="Climate Intelligence"
-        description="Explora series diarias de NASA POWER con sus metadatos, faltantes y limitaciones."
+        eyebrow={t('climateEyebrow')}
+        title={t('climate-intelligence')}
+        description={t('climateDescription')}
       />
       <div className="climate-intro">
         <form className="surface climate-form" onSubmit={submit}>
           <div className="section-heading">
             <div>
-              <p className="eyebrow">CONSULTA CLIMÁTICA</p>
-              <h2>Selecciona el contexto</h2>
+              <p className="eyebrow">{t('climateQuery')}</p>
+              <h2>{t('climateSelect')}</h2>
             </div>
             <StatusBadge variant={connection === 'connected' ? 'success' : 'warning'}>
-              {connection === 'connected'
-                ? 'Backend disponible'
-                : 'Backend sin comprobar o desconectado'}
+              {connection === 'connected' ? t('connected') : t('backendUnavailable')}
             </StatusBadge>
           </div>
           <div className="form-grid">
             <LocationSelect />
             <label className="field">
-              Periodo
+              {t('period')}
               <select value={preset} onChange={(e) => choose(e.target.value)}>
-                <option value="2025">Histórico 2025</option>
-                <option value="7">Últimos 7 días UTC</option>
-                <option value="30">Últimos 30 días UTC</option>
-                <option value="custom">Rango personalizado</option>
+                <option value="2025">{t('historical2025')}</option>
+                <option value="7">{t('last7')}</option>
+                <option value="30">{t('last30')}</option>
+                <option value="custom">{t('customRange')}</option>
               </select>
             </label>
             <label className="field">
-              Desde
+              {t('from')}
               <input
                 type="date"
                 value={start}
@@ -208,7 +210,7 @@ export function ClimateIntelligencePage() {
               />
             </label>
             <label className="field">
-              Hasta
+              {t('to')}
               <input
                 type="date"
                 value={end}
@@ -221,17 +223,14 @@ export function ClimateIntelligencePage() {
               />
             </label>
           </div>
-          <p className="fine-print">
-            Los días recientes pueden no estar publicados por el proveedor. Máximo 366 días; fechas
-            UTC.
-          </p>
-          {validation && <p role="alert">{validation}</p>}
+          <p className="fine-print">{t('climateDateNote')}</p>
+          {validation && <p role="alert">{t(validation)}</p>}
           <button
             className="button button-primary"
             type="submit"
             disabled={climate.status === 'loading'}
           >
-            {climate.status === 'loading' ? 'Consultando…' : 'Consultar NASA POWER'}
+            {t(climate.status === 'loading' ? 'querying' : 'queryNasa')}
           </button>
         </form>
         <SolarScene
@@ -240,22 +239,19 @@ export function ClimateIntelligencePage() {
           label={location.label}
         />
       </div>
-      {climate.status === 'loading' && <LoadingState>Consultando la serie climática…</LoadingState>}
+      {climate.status === 'loading' && <LoadingState>{t('climateLoading')}</LoadingState>}
       {climate.status === 'error' && (
         <ErrorState message={climate.error} retry={() => void queryClimate(start, end)} />
       )}
       {climate.status === 'idle' && (
-        <EmptyState title="Aún no hay una consulta climática">
-          Selecciona ubicación y periodo para consultar el servicio. Los datos recientes pueden no
-          estar disponibles.
-        </EmptyState>
+        <EmptyState title={t('climateEmpty')}>{t('climateEmptyDescription')}</EmptyState>
       )}
       {result && (
         <>
           <div className="climate-results-heading">
             <div>
               <p className="eyebrow">NASA POWER · DAILY POINT</p>
-              <h2>Serie diaria</h2>
+              <h2>{t('dailySeries')}</h2>
               <p>
                 {result.data.period.start_date} — {result.data.period.end_date} ·{' '}
                 {result.data.location.latitude}, {result.data.location.longitude}
@@ -267,15 +263,17 @@ export function ClimateIntelligencePage() {
               }
             >
               {result.data.variables.some((v) => v.missing_count > 0)
-                ? 'Datos parciales'
-                : 'Serie disponible'}
+                ? t('partialData')
+                : t('seriesAvailable')}
             </StatusBadge>
           </div>
           <div className="charts-grid">
             {variables.map((variable) => (
               <Chart
                 key={variable.id}
-                {...variable}
+                id={variable.id}
+                title={t(variable.title)}
+                subtitle={t(variable.subtitle)}
                 points={result.data.series}
                 meta={result.data.variables.find((item) => item.id === variable.id)}
               />

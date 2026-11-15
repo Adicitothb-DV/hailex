@@ -139,6 +139,13 @@ try {
     ).includes('Alfalfa'),
   );
   console.log('PASS deterministic rotation comparison via backend');
+  await evaluate("document.querySelector('.lex-trigger').click()");
+  await evaluate(`(() => {
+    const original = window.fetch;
+    window.fetch = async (url, options) => String(url).includes('/advisor/chat')
+      ? new Response(JSON.stringify({error:{code:'groq_api_key_missing',message:'La clave Groq no está configurada en el backend.'}}), {status:503,headers:{'Content-Type':'application/json'}})
+      : original(url, options);
+  })()`);
   await evaluate(`(() => {
     const textarea = document.querySelector('.advisor-chat textarea');
     Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(textarea, '¿Qué debo revisar?');
@@ -162,8 +169,15 @@ try {
         window.__advisorRequest = JSON.parse(options.body);
         return new Response(JSON.stringify({data:{answer:{conclusion:'Respuesta simulada',interpretation:'Revisión de campo',actions:['Verificar agua'],limitations:['Datos parciales'],follow_up_questions:[]},context:{forecast:{status:'forecast_not_reliable'}},model:'openai/gpt-oss-120b',prompt_version:'test'},warnings:[]}), {status:200,headers:{'Content-Type':'application/json'}});
       }
+      if (String(url).includes('/advisor/tts')) {
+        window.__ttsRequests = (window.__ttsRequests || 0) + 1;
+        window.__ttsBody = JSON.parse(options.body);
+        return new Response(new Blob(['mock audio'], {type:'audio/mpeg'}), {status:200,headers:{'Content-Type':'audio/mpeg'}});
+      }
       return original(url, options);
     };
+    HTMLMediaElement.prototype.play = function() { window.__played = (window.__played || 0) + 1; return Promise.resolve(); };
+    HTMLMediaElement.prototype.pause = function() {};
     document.querySelectorAll('.advisor-chat fieldset input')[1].click();
   })()`);
   await delay(100);
@@ -171,7 +185,64 @@ try {
   await waitFor("document.querySelector('.advisor-chat').innerText.includes('Respuesta simulada')");
   assert.equal(await evaluate('window.__advisorRequest.include_siap'), false);
   assert.equal(await evaluate('window.__advisorRequest.message'), '¿Qué debo revisar?');
+  assert.equal(await evaluate('window.__advisorRequest.history.length'), 0);
+  assert.equal(await evaluate('window.__advisorRequest.include_web'), true);
+  await waitFor('window.__ttsRequests === 1 && window.__played === 1');
+  assert.ok((await evaluate('window.__ttsBody.text')).includes('Verificar agua'));
   console.log('PASS advisor success rendering and selected context (mock)');
+  await evaluate(`(() => {
+    const textarea = document.querySelector('.advisor-chat textarea');
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(textarea, 'Ya revisé el agua');
+    textarea.dispatchEvent(new Event('input', {bubbles:true}));
+  })()`);
+  await delay(100);
+  await evaluate("document.querySelector('.advisor-chat form').requestSubmit()");
+  await waitFor("document.querySelectorAll('.advisor-response').length === 2");
+  assert.equal(await evaluate('window.__advisorRequest.history.length'), 2);
+  assert.equal(await evaluate('window.__advisorRequest.history[0].content'), '¿Qué debo revisar?');
+  assert.equal(await evaluate('window.__advisorRequest.message'), 'Ya revisé el agua');
+  await waitFor('window.__ttsRequests === 2 && window.__played === 2');
+  await evaluate("location.hash='#/dashboard'");
+  await waitFor("document.querySelector('main h1')?.textContent === 'La tierra, en perspectiva.'");
+  await send('Page.reload');
+  await delay(500);
+  await waitFor("Boolean(document.querySelector('.lex-trigger'))");
+  await evaluate("document.querySelector('.lex-trigger').click()");
+  await waitFor("document.querySelectorAll('.advisor-response').length === 2");
+  await evaluate(
+    "window.confirm=()=>true; [...document.querySelectorAll('.advisor-chat button')].find(b=>b.textContent.includes('Nueva conversación')).click()",
+  );
+  await waitFor("document.querySelectorAll('.advisor-response').length === 0");
+  console.log('PASS follow-up history and new conversation');
+  await evaluate('document.querySelector(\'[aria-label="Cerrar Lex"]\').click()');
+  await evaluate(`window.SpeechRecognition = class {
+    start() { window.__recognition = this; }
+    abort() { this.aborted = true; }
+  }`);
+  await evaluate("document.querySelector('.lex-wake button').click()");
+  assert.equal(
+    await evaluate("document.querySelector('.lex-wake button').getAttribute('aria-pressed')"),
+    'true',
+  );
+  await evaluate(
+    `window.__recognition.onresult({resultIndex:0,results:[{isFinal:true,0:{transcript:'Oye Lex, analiza mi parcela'}}]})`,
+  );
+  await waitFor("document.querySelector('.advisor-chat textarea')?.value === 'analiza mi parcela'");
+  assert.equal(await evaluate('window.__recognition.aborted'), true);
+  assert.equal(await evaluate("document.querySelectorAll('.advisor-response').length"), 0);
+  console.log('PASS opt-in wake word opens chat and preserves command for review');
+  await evaluate('document.querySelector(\'[aria-label="Cerrar Lex"]\').click()');
+  await evaluate("document.querySelector('.lex-wake button').click()");
+  await evaluate(
+    "Object.defineProperty(document, 'hidden', { configurable: true, value: true }); document.dispatchEvent(new Event('visibilitychange'))",
+  );
+  assert.equal(await evaluate('window.__recognition.aborted'), true);
+  assert.equal(
+    await evaluate("document.querySelector('.lex-wake button').getAttribute('aria-pressed')"),
+    'false',
+  );
+  await evaluate('delete document.hidden');
+  console.log('PASS microphone stops when page is hidden');
 } finally {
   socket?.close();
   browser.kill();
