@@ -9,4 +9,5 @@
 - **Módulos:** Dashboard, Earth Explorer, Climate Intelligence, Rotation Studio, Analysis & Insights + Procedencia transversal.
 - **Endpoints canónicos V1:** implementado `GET /api/v1/health`; pendientes `GET /api/v1/climate/series`, `GET /api/v1/crops`, `GET /api/v1/sources`, `POST /api/v1/rotations/compare`. Fuente de verdad: `docs/API_CONTRACT.md`.
 - **Fase 5:** base FastAPI ejecutable, Swagger/OpenAPI, configuración Pydantic Settings, CORS local, errores uniformes, X-Request-ID/logging y 24 pruebas. NASA, catálogo, snapshots y motor siguen pendientes; sin integración frontend todavía.
+- **Pilotos y datos:** El Marqués (La Cañada) y Colón (Colón), puntos municipales independientes; catálogo limitado a maíz forrajero, alfalfa, cebada y sorgo. POWER histórico 2025 recuperado por separado, no en vivo; ver `docs/DATA_SOURCES.md` y `docs/AGRONOMIC_RULES.md`. Información gubernamental del equipo pendiente de incorporación.
 - **Principio Rector:** Explicabilidad, determinismo, procedencia verificable y honestidad científica.

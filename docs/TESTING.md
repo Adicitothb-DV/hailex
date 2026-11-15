@@ -1,5 +1,15 @@
 # TESTING.md — Plan y Registro de Pruebas
 
+## Registro Fase 4 — 14 de noviembre de 2026
+
+Desde el backend: Pytest **24 passed**, Ruff check correcto y formato correcto en
+13 archivos. Verificación independiente de los dos payloads y manifiestos: JSON estricto
+sin claves duplicadas ni NaN/Infinity, SHA-256 de payload, parámetros y unidades del
+proveedor, fecha diaria UTC ordenada y única del 1 de enero al 31 de diciembre de 2025,
+365 valores por serie, sentinel y conteos, coordenadas de solicitud y geometría devuelta.
+Ambas regiones HTTP 200, sin faltantes. La comprobación geográfica se basa en cabeceras
+identificadas por fichas oficiales, no en intersección con polígonos.
+
 - Backend: `pytest` y `ruff check .`
 - Frontend: `npm run build` y `npm run lint`
 - End-to-End: Selección de punto -> Consulta clima -> Comparación 3 escenarios -> Cambio de pesos.

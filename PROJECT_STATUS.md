@@ -1,7 +1,7 @@
 # PROJECT_STATUS.md — Estado Actual del Proyecto
 
-- **Última actualización:** 2026-11-14 17:29 (America/Mexico_City)
-- **Fase actual:** Fase 5 — Backend foundation implementado y validado; publicación Git en curso al redactar este registro.
+- **Última actualización:** 2026-11-14 (America/Mexico_City)
+- **Fase actual:** Fase 4 — investigación y dos fixtures históricos; evidencias y revisión agronómica local pendientes según `docs/AGRONOMIC_RULES.md`.
 - **Checkpoint documental:** `2d40f11` (`docs: define API and data contracts`), sobre base `dad906e`, conservó los cinco documentos de INT-01. Commit funcional: `feat: create FastAPI service foundation` (consultar git log tras su creación).
 - **Estado por módulo:**
   - Contrato canónico V1: `docs/API_CONTRACT.md`, aprobado para implementar; raíz `API_CONTRACT.md` solo referencia, sin cambios en esta fase.
@@ -14,9 +14,12 @@
 - **Reproducibilidad:** grupos `runtime`/`dev` en `backend/pyproject.toml`; snapshot de 30 paquetes en `backend/requirements.lock`, sin hashes, validado con instalación dry-run sobre el entorno actual (no segunda instalación limpia).
 - **Limitaciones BE-02:** terminal conserva PATH anterior; se usa ejecutable absoluto de `.venv`. Selección visual del intérprete en VS Code pendiente de confirmar por el desarrollador. Starlette TestClient emite deprecación al usar HTTPX; no se añadió otro cliente.
 - **Git BE-02:** `.venv` ignorado y sin archivos rastreados; no se modificó frontend, contratos ni `.env.example`.
-- **INT-01:** cinco rutas canónicas bajo `/api/v1`; sobres uniformes, procedencia, faltantes, estados independientes eligibility/assessment_status, snapshots en memoria 30 minutos y único worker documentados. Unidades/reglas agronómicas pendientes de verificación, no inventadas.
+- **INT-01:** cinco rutas canónicas bajo `/api/v1`; sobres uniformes, procedencia, faltantes, estados independientes eligibility/assessment_status, snapshots en memoria 30 minutos y único worker documentados. Reglas agronómicas pendientes de validación; unidades POWER verificadas en respuestas históricas.
 - **Validación INT-01:** revisión documental y parseo estricto de ejemplos JSON; no pruebas de servidor ni nuevos modelos ejecutables. Ver informe final de la tarea para resultados.
 - **Validación Fase 5:** 24 pruebas Pytest aprobadas; Ruff check y format correctos (13 archivos); pip check sin conflictos. Smoke Uvicorn real con health/Swagger/OpenAPI HTTP 200 y X-Request-ID; proceso temporal detenido. Véase `docs/TESTING.md`.
 - **Configuración Fase 5:** CPython/venv/dependencias conservados. Settings lee `.env` opcional y CSV CORS; orígenes locales explícitos, sin credenciales ni wildcard. APP_PORT validado pero cambio de puerto requiere CLI --port; variables NASA siguen reservadas.
 - **Límites:** solo `/api/v1/health` implementado. Sin NASA, catálogo, sources, snapshots, motor, DB/auth o frontend integrado. GitHub CLI no detectado; no se promete PR creado. Resultado de push y hash final se verifican en el informe de cierre, no se anticipan aquí.
-- **Próxima tarea exacta:** revisión cruzada de foundation; continuar Fase 4 verificando fuentes/unidades/productos NASA y región/periodo piloto, antes de implementar cliente POWER en Fase 6. Fases 7/8 requieren catálogo y reglas documentadas.
+- **Fase 4:** referencias municipales La Cañada, El Marqués y Colón, Colón; dos respuestas POWER 2025 HTTP 200 archivadas por separado, 365 valores válidos por variable y municipio. Ver manifiestos y `docs/DATA_SOURCES.md`. Datum específico de la fuente de coordenadas no verificado; verificación poligonal y revisión del diccionario de parámetros pendientes.
+- **Agronomía:** exactamente maíz forrajero, alfalfa, cebada y sorgo; SIAP en fichas estatales: avance octubre 2024 para El Marqués y cierre 2023 para Colón, no comparables automáticamente; secuencias sin evaluación local definitiva. Ciclos, riego y calendarios locales pendientes de desglose y revisión agronómica.
+- **Fuentes locales del equipo:** comunicadas, archivos y metadatos pendientes, no implementadas ni integradas.
+- **Próxima tarea exacta:** Fase 6 — NASA POWER Service, respetando contrato y procedencia; catálogo y motor siguen pendientes.

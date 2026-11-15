@@ -1,6 +1,6 @@
 # KNOWN_LIMITATIONS.md — Limitaciones Conocidas
 
-1. NASA POWER no está integrado. Resolución/unidades/origen deben verificarse por producto y parámetro; no representan medición exacta de parcela.
+1. NASA POWER no está integrado. Resolución/unidades/origen se documentan por parámetro para las respuestas históricas; revisar diccionario antes de integrar. No representan medición exacta de parcela.
 2. No existe motor ni pesos calibrados; reglas, fuentes y prioridades iniciales requieren revisión agronómica local.
 3. La evaluación no predice rendimiento en toneladas ni rentabilidad económica.
 4. Fase 5 implementa únicamente infraestructura y health. Clima, catálogo, sources, compare, snapshots y flujo frontend-backend no están implementados.
@@ -9,3 +9,5 @@
 7. Errores después de comenzar una futura respuesta streaming no pueden cambiarse a un sobre JSON nuevo. No hay streaming de negocio en esta fase.
 8. El log de aplicación omite datos sensibles por diseño; el filtro de acceso redacta el destino del formato estándar de Uvicorn. Configuraciones de logging externas requieren revisión propia.
 9. Swagger usa recursos externos para su UI; OpenAPI y health son locales. Prueba HTTP de /docs valida entrega HTML, no render visual offline.
+10. Las respuestas históricas POWER para ambas cabeceras son independientes y no son mediciones de parcela ni servicio en vivo. Las series solares coinciden; datum de la publicación de coordenadas y prueba poligonal independiente pendientes.
+11. La evidencia de secuencias es regional o hipotética, no validación agronómica municipal. Desgloses por ciclo y régimen y datos gubernamentales aportados por el equipo siguen pendientes.

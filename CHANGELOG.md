@@ -1,5 +1,10 @@
 # CHANGELOG.md
 
+## Fase 4 - 2026-11-14 (America/Mexico_City)
+- **Investigación:** dos municipios oficiales y cuatro cultivos; referencias municipales INEGI, fuentes SIAP en fichas estatales, contexto agronómico y secuencias pendientes de revisión local.
+- **NASA:** dos consultas independientes de 2025, HTTP 200; dos payloads históricos originales y manifiestos; sin cliente, endpoint ni normalizador de producción. Se documentan unidades, resolución, sentinel y limitaciones.
+- **Pendiente:** datum específico y prueba poligonal de puntos, desglose SIAP por ciclo/régimen, revisión agronómica, metadatos y archivos gubernamentales del equipo; siguiente Fase 6.
+
 ## Fase 5 - 2026-11-14 17:29 (America/Mexico_City)
 - **Cambio:** aplicación FastAPI con factoría, GET /api/v1/health, modelos de sobre/error, configuración Pydantic Settings, CORS local, request ID UUID y logging sanitizado; 24 pruebas sin red.
 - **Archivos:** nuevos módulos en `backend/app/api/`, `backend/app/core/`, `backend/app/schemas/`, `backend/app/main.py` y `backend/tests/`; documentación actualizada en backend/README, README, PROJECT_CONTEXT/STATUS, ARCHITECTURE, TESTING y KNOWN_LIMITATIONS.
