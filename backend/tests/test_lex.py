@@ -250,6 +250,26 @@ def test_browser_search_failure_does_not_fabricate_results():
     assert result["sources"] == []
 
 
+def test_search_falls_back_to_second_browser_model():
+    calls = []
+
+    def handler(request):
+        payload = json.loads(request.content)
+        calls.append(payload["model"])
+        if len(calls) == 1:
+            return httpx.Response(429)
+        assert payload["tools"] == [{"type": "browser_search"}]
+        return httpx.Response(
+            200,
+            json={"choices": [{"finish_reason": "stop", "message": {"content": "sin fuentes"}}]},
+        )
+
+    settings = Settings(_env_file=None, groq_api_key=SecretStr("test-only"))
+    result = asyncio.run(research(settings, "precio actual", httpx.MockTransport(handler)))
+    assert calls == ["openai/gpt-oss-120b", "openai/gpt-oss-20b"]
+    assert result["status"] == "insufficient_evidence"
+
+
 def test_search_text_urls_are_unverified_and_not_prices():
     settings = Settings(_env_file=None, groq_api_key=SecretStr("test-only"))
     transport = httpx.MockTransport(

@@ -1,5 +1,10 @@
 # CHANGELOG.md
 
+## Lex: modelos alternativos — 2026-11-15
+
+- Respaldo de modelos Groq, búsqueda separada con respaldo, ocultamiento del monitor en la
+  navegación, animaciones accesibles y avance parcial de traducción del asesor de rotación.
+
 ## Monitor fitosanitario ilustrativo — 2026-11-15
 
 - Nueva vista, API y simulador para Colón y El Marqués, con NASA POWER, mapa y CSV;

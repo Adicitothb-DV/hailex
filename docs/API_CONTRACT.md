@@ -1,5 +1,15 @@
 # HaiLex — Contrato API V1
 
+## Lex: modelos alternativos — 2026-11-15
+
+- `POST /api/v1/advisor/chat` intenta, en orden, GPT-OSS 120B, GPT-OSS 20B,
+  Llama 3.3 70B y Llama 3.1 8B si hay cuota, permisos por modelo, indisponibilidad o
+  timeout. En 401 se detiene. `model` indica el modelo que realmente contestó.
+  GPT-OSS usa esquema JSON estricto; Llama usa JSON y validación Pydantic posterior.
+- La búsqueda web sigue siendo una operación separada compartida por todos los modelos de
+  respuesta; intenta GPT-OSS 120B y 20B, pero puede fallar por cuota o disponibilidad.
+  El filtro de precios y sus limitaciones permanecen: no hay garantía de acceso o verificación.
+
 ## Monitor fitosanitario ilustrativo — 2026-11-15
 
 - `GET /api/v1/agroalert/pests/sectors?municipality=...` devuelve localidades y cultivos

@@ -25,6 +25,51 @@
   width: 100%;
   resize: vertical;
 }
+.lex-waiting {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.lex-waiting-dots {
+  display: inline-flex;
+  gap: 4px;
+}
+.lex-waiting-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #43886a;
+  animation: lex-dot 900ms infinite alternate;
+}
+.lex-waiting-dots i:nth-child(2) {
+  animation-delay: 150ms;
+}
+.lex-waiting-dots i:nth-child(3) {
+  animation-delay: 300ms;
+}
+.lex-typing-reveal {
+  animation: lex-reveal 280ms ease-out both;
+}
+@keyframes lex-dot {
+  from {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
+}
+@keyframes lex-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 .lex-trigger {
   position: fixed;
   right: 24px;

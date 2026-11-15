@@ -33,17 +33,19 @@ export function Sidebar({
       </a>
       <p className="nav-caption">{t('workspace')}</p>
       <nav aria-label={t('navigation')} className="primary-nav">
-        {navigation.map((item) => (
-          <a
-            key={item.id}
-            href={`#/${item.id}`}
-            aria-current={active === item.id ? 'page' : undefined}
-            onClick={onNavigate}
-          >
-            <NavigationIcon screen={item.id} />
-            <span>{t(item.id)}</span>
-          </a>
-        ))}
+        {navigation
+          .filter((item) => item.id !== 'pest-monitor')
+          .map((item) => (
+            <a
+              key={item.id}
+              href={`#/${item.id}`}
+              aria-current={active === item.id ? 'page' : undefined}
+              onClick={onNavigate}
+            >
+              <NavigationIcon screen={item.id} />
+              <span>{t(item.id)}</span>
+            </a>
+          ))}
       </nav>
       <div className="sidebar-note">
         <span className="sidebar-note-label">{t('science')}</span>

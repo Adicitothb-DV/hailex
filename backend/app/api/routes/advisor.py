@@ -14,7 +14,7 @@ from app.schemas.common import SuccessResponse, WireModel
 from app.services.advisor_context import build_context
 from app.services.advisor_prompt import PROMPT_VERSION
 from app.services.fish_audio import synthesize
-from app.services.groq_advisor import MODEL, AdvisorError, generate
+from app.services.groq_advisor import MODEL, MODELS, AdvisorError, generate
 from app.services.lex_research import research
 
 router = APIRouter(prefix="/advisor")
@@ -58,6 +58,7 @@ async def config(request: Request):
     return SuccessResponse(
         data={
             "model": MODEL,
+            "fallback_models": list(MODELS[1:]),
             "voice_enabled": settings.lex_voice_enabled,
             "tts_configured": bool(settings.fish_audio_api_key.get_secret_value().strip()),
             "voice_reference_configured": bool(settings.fish_audio_reference_id),
@@ -113,7 +114,7 @@ async def chat(body: AdvisorRequest, request: Request):
         data={
             "answer": answer.model_dump(),
             "context": context,
-            "model": MODEL,
+            "model": answer._model_used,
             "prompt_version": PROMPT_VERSION,
         },
         warnings=[

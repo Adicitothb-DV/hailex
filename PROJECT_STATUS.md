@@ -1,5 +1,19 @@
 # PROJECT_STATUS.md — Estado Actual del Proyecto
 
+## Lex: respaldo de modelos y navegación — 2026-11-15
+
+- Respaldo acotado entre GPT-OSS 120B/20B y Llama 3.3 70B/3.1 8B; búsqueda web separada
+  intenta ambos GPT-OSS y alimenta a cualquier modelo de respuesta. Ningún precio queda
+  automáticamente verificado; puede faltar evidencia o agotarse la cuota compartida.
+- Groq configurado solo en `.env` ignorado. Prueba real devolvió respuesta con GPT-OSS 20B;
+  no se validaron todos los modelos ni una búsqueda y precio completos en vivo. Al haber
+  compartido la clave en chat, rotarla antes de producción.
+- Monitor fitosanitario oculto en menú y accesos rápidos, conservando ruta directa. Animación
+  breve de escritura y espera respeta movimiento reducido. Traducidos controles propios del
+  asesor de rotación, pero AgroAlert, resultados de backend y otras pantallas siguen pendientes.
+- No hay despliegue público configurado ni controles multiusuario/costos suficientes para
+  exponer Lex sin restricciones. Build, lint, paridad i18n, Ruff y 163 pruebas backend pasan.
+
 ## Monitor fitosanitario — 2026-11-15
 
 - Vista nueva de HaiLex para El Marqués y Colón: localidades ilustrativas, filtro de cultivo,

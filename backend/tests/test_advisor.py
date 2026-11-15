@@ -53,6 +53,49 @@ def test_groq_success_schema_and_context():
     assert answer.conclusion == ANSWER["conclusion"]
 
 
+def test_model_fallback_uses_compatible_json_and_reports_actual_model():
+    calls = []
+
+    def handler(req):
+        payload = json.loads(req.content)
+        calls.append(payload["model"])
+        if len(calls) < 4:
+            return httpx.Response(429)
+        assert payload["model"] == "llama-3.1-8b-instant"
+        assert payload["response_format"] == {"type": "json_object"}
+        assert "reasoning_effort" not in payload
+        assert "JSON" in payload["messages"][0]["content"]
+        return httpx.Response(
+            200,
+            json={
+                "choices": [{"finish_reason": "stop", "message": {"content": json.dumps(ANSWER)}}]
+            },
+        )
+
+    answer = run(generate(settings(), "Hola", {}, httpx.MockTransport(handler)))
+    assert calls == [
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b",
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant",
+    ]
+    assert answer._model_used == "llama-3.1-8b-instant"
+    assert "_model_used" not in answer.model_dump()
+
+
+def test_authentication_failure_never_falls_back():
+    calls = []
+
+    def handler(req):
+        calls.append(req)
+        return httpx.Response(401)
+
+    with pytest.raises(AdvisorError) as error:
+        run(generate(settings(), "Hola", {}, httpx.MockTransport(handler)))
+    assert error.value.code == "groq_auth_error"
+    assert len(calls) == 1
+
+
 @pytest.mark.parametrize(
     "locale,language", [("en-US", "US English"), ("es-MX", "español de México")]
 )

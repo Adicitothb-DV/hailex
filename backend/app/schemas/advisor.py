@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field, PrivateAttr, model_validator
 
 from app.schemas.common import WireModel
 from app.schemas.rotation_workspace import CropId
@@ -54,6 +54,7 @@ class AdvisorRequest(WireModel):
 
 
 class AdvisorAnswer(WireModel):
+    _model_used: str = PrivateAttr(default="openai/gpt-oss-120b")
     conclusion: str = Field(min_length=1, max_length=2500)
     interpretation: str = Field(max_length=4000)
     actions: list[str] = Field(max_length=8)

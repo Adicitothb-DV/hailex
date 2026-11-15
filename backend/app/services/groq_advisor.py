@@ -1,4 +1,4 @@
-"""Groq chat integration: no tools, writes, automatic model fallback or secret logging."""
+"""Groq chat with bounded, model-aware fallback and no secret logging."""
 
 import json
 import re
@@ -11,6 +11,7 @@ from app.schemas.advisor import AdvisorAnswer, AdvisorTurn
 from app.services.advisor_prompt import prompt_for_locale
 
 MODEL = "openai/gpt-oss-120b"
+MODELS = (MODEL, "openai/gpt-oss-20b", "llama-3.3-70b-versatile", "llama-3.1-8b-instant")
 URL = "https://api.groq.com/openai/v1/chat/completions"
 
 
@@ -85,19 +86,45 @@ async def generate(
         "reasoning_effort": "medium",
         "stream": False,
     }
-    try:
-        async with httpx.AsyncClient(
-            timeout=settings.groq_timeout_seconds, transport=transport, trust_env=False
-        ) as client:
-            response = await client.post(
-                URL, headers={"Authorization": f"Bearer {key}"}, json=payload
-            )
-    except httpx.TimeoutException as exc:
-        raise AdvisorError(
-            "groq_timeout", 504, "Groq no respondió a tiempo. Tu consulta se conserva."
-        ) from exc
-    except httpx.HTTPError as exc:
-        raise AdvisorError("groq_provider_error", 503, "No se pudo conectar con Groq.") from exc
+    response = None
+    last_error = None
+    model_used = MODEL
+    async with httpx.AsyncClient(
+        timeout=min(settings.groq_timeout_seconds, 25), transport=transport, trust_env=False
+    ) as client:
+        for model_used in MODELS:
+            payload["model"] = model_used
+            if model_used.startswith("llama-"):
+                payload["response_format"] = {"type": "json_object"}
+                payload.pop("reasoning_effort", None)
+                payload["messages"][0]["content"] = prompt_for_locale(locale) + (
+                    "\nDevuelve un objeto JSON con conclusion, interpretation, actions, "
+                    "limitations y follow_up_questions; los tres últimos son listas de texto."
+                )
+            try:
+                response = await client.post(
+                    URL, headers={"Authorization": f"Bearer {key}"}, json=payload
+                )
+            except httpx.TimeoutException as exc:
+                response = None
+                last_error = AdvisorError(
+                    "groq_timeout", 504, "Groq no respondió a tiempo. Tu consulta se conserva."
+                )
+                last_error.__cause__ = exc
+                continue
+            except httpx.HTTPError as exc:
+                raise AdvisorError(
+                    "groq_provider_error", 503, "No se pudo conectar con Groq."
+                ) from exc
+            if response.status_code not in (403, 404, 429, 500, 502, 503, 504):
+                break
+        else:
+            if response is None and last_error is not None:
+                raise last_error
+    if response is None:
+        raise last_error or AdvisorError(
+            "groq_provider_error", 503, "No se pudo conectar con Groq."
+        )
     if response.status_code == 429:
         retry = response.headers.get("retry-after", "")
         retry = retry if retry.isascii() and retry.isdigit() and len(retry) <= 6 else None
@@ -134,6 +161,7 @@ async def generate(
             if isinstance(parsed.get(field), list):
                 parsed[field] = parsed[field][:maximum]
         answer = AdvisorAnswer.model_validate(parsed)
+        answer._model_used = model_used
         research = context.get("web_research")
         if (
             isinstance(research, dict)

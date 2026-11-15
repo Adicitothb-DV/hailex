@@ -15,6 +15,30 @@ type Props = {
   voiceCommand: { id: number; text: string } | null;
 };
 type Exchange = { question: string; response: AdvisorResponse; locale?: AppLocale };
+
+function Typewriter({ text }: { text: string }) {
+  const [visible, setVisible] = useState(0);
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const started = performance.now();
+    let frame = 0;
+    function tick(now: number) {
+      const count = Math.min(text.length, Math.ceil(((now - started) / 280) * text.length));
+      setVisible(count);
+      if (count < text.length) frame = requestAnimationFrame(tick);
+    }
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [text]);
+  const reduced =
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return (
+    <>
+      <span className="sr-only">{text}</span>
+      <span aria-hidden="true">{reduced ? text : text.slice(0, visible)}</span>
+    </>
+  );
+}
 type Profile = {
   municipality: string;
   locality: string;
@@ -225,7 +249,13 @@ export function AdvisorChat({
               {!(status === 'audio' && index === conversation.length - 1) && (
                 <article className="advisor-response">
                   <strong className="advisor-response-label">{t('lexAdvisor')}</strong>
-                  <p className="advisor-conclusion">{response.answer.conclusion}</p>
+                  <p className="advisor-conclusion">
+                    {index === conversation.length - 1 && status === 'success' ? (
+                      <Typewriter text={response.answer.conclusion} />
+                    ) : (
+                      response.answer.conclusion
+                    )}
+                  </p>
                   {response.answer.interpretation && <p>{response.answer.interpretation}</p>}
                   {response.answer.actions.length > 0 && (
                     <div className="advisor-section">
@@ -449,8 +479,16 @@ export function AdvisorChat({
           )}
         </div>
       </form>
-      {status === 'loading' && <p role="status">{t('lexLoading')}</p>}
-      {status === 'audio' && <p role="status">{t('lexPreparingSync')}</p>}
+      {(status === 'loading' || status === 'audio') && (
+        <p className="lex-waiting" role="status">
+          {t(status === 'loading' ? 'lexLoading' : 'lexPreparingSync')}
+          <span className="lex-waiting-dots" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </span>
+        </p>
+      )}
       {latestVoice && latestVoice.text.length > 1800 && status !== 'audio' && (
         <p>{t('voiceTruncated')}</p>
       )}

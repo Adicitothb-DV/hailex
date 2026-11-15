@@ -133,13 +133,25 @@ async def research(settings: Settings, message: str, transport=None) -> dict:
     }
     try:
         async with httpx.AsyncClient(
-            timeout=settings.groq_timeout_seconds, transport=transport, trust_env=False
+            timeout=min(settings.groq_timeout_seconds, 15), transport=transport, trust_env=False
         ) as client:
-            response = await client.post(
-                URL,
-                headers={"Authorization": f"Bearer {settings.groq_api_key.get_secret_value()}"},
-                json=payload,
-            )
+            response = None
+            for browser_model in (MODEL, "openai/gpt-oss-20b"):
+                payload["model"] = browser_model
+                try:
+                    response = await client.post(
+                        URL,
+                        headers={
+                            "Authorization": f"Bearer {settings.groq_api_key.get_secret_value()}"
+                        },
+                        json=payload,
+                    )
+                except httpx.TimeoutException:
+                    continue
+                if response.status_code not in (403, 404, 429, 500, 502, 503, 504):
+                    break
+            if response is None:
+                return result
         if not response.is_success:
             return result
         body = response.json()

@@ -138,16 +138,19 @@ export function DashboardPage() {
           <span className="muted">{t('locationToExplanation')}</span>
         </div>
         <div className="quick-links">
-          {navigation.slice(1).map((item) => (
-            <a key={item.id} href={`#/${item.id}`}>
-              <NavigationIcon screen={item.id} />
-              <strong>{t(item.id)}</strong>
-              <span>{t(`${item.id}-description`)}</span>
-              <span className="quick-arrow" aria-hidden="true">
-                ↗
-              </span>
-            </a>
-          ))}
+          {navigation
+            .slice(1)
+            .filter((item) => item.id !== 'pest-monitor')
+            .map((item) => (
+              <a key={item.id} href={`#/${item.id}`}>
+                <NavigationIcon screen={item.id} />
+                <strong>{t(item.id)}</strong>
+                <span>{t(`${item.id}-description`)}</span>
+                <span className="quick-arrow" aria-hidden="true">
+                  ↗
+                </span>
+              </a>
+            ))}
         </div>
       </section>
     </>
