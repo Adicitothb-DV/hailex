@@ -1,5 +1,31 @@
 # CHANGELOG.md
 
+## Fase 6 - 2026-11-14 (America/Mexico_City)
+- Cliente HTTPX asíncrono, normalizador POWER AG/UTC, rutas climática y fuentes, errores sanitizados, caché y snapshots en memoria con único worker.
+- Respaldo histórico real solo para coordenadas y periodo exactos, con aviso y fecha original; sin modificar payloads ni crear datos simulados.
+- Consultas reales a ambos municipios, pruebas offline y regresión documentadas en `docs/TESTING.md`. Se conserva La Cañada para El Marqués por confirmación del usuario.
+- Siguiente: Fase 7, catálogo/perfil de suelo y fuentes gubernamentales; motor sigue pendiente.
+
+## Fase 4 - 2026-11-14 (America/Mexico_City)
+- **Investigación:** dos municipios oficiales y cuatro cultivos; referencias municipales INEGI, fuentes SIAP en fichas estatales, contexto agronómico y secuencias pendientes de revisión local.
+- **NASA:** dos consultas independientes de 2025, HTTP 200; dos payloads históricos originales y manifiestos; sin cliente, endpoint ni normalizador de producción. Se documentan unidades, resolución, sentinel y limitaciones.
+- **Pendiente:** datum específico y prueba poligonal de puntos, desglose SIAP por ciclo/régimen, revisión agronómica, metadatos y archivos gubernamentales del equipo; siguiente Fase 6.
+
+## Fase 5 - 2026-11-14 17:29 (America/Mexico_City)
+- **Cambio:** aplicación FastAPI con factoría, GET /api/v1/health, modelos de sobre/error, configuración Pydantic Settings, CORS local, request ID UUID y logging sanitizado; 24 pruebas sin red.
+- **Archivos:** nuevos módulos en `backend/app/api/`, `backend/app/core/`, `backend/app/schemas/`, `backend/app/main.py` y `backend/tests/`; documentación actualizada en backend/README, README, PROJECT_CONTEXT/STATUS, ARCHITECTURE, TESTING y KNOWN_LIMITATIONS.
+- **Validación:** Pytest 24 passed; Ruff check/format correctos; pip check sin conflictos. Uvicorn real responde health, Swagger y OpenAPI por HTTP; proceso temporal detenido. Sin nuevas dependencias ni cambios frontend, contrato, datos o entorno versionado.
+- **Seguridad:** errores HTTP/validación/500 con sobre contractual, X-Request-ID y logs sin cuerpos/headers/queries/mensajes de excepción. Destino de acceso Uvicorn redactado. CORS sin wildcard/credenciales.
+- **Git:** contrato anterior preservado en commit independiente `2d40f11`; este bloque pertenece a `feat: create FastAPI service foundation`. Publicación normal pendiente de ejecución/verificación al redactar; GitHub CLI no disponible. No merge a main.
+- **Pendientes:** Fase 4 investigación/fixtures, Fase 6 POWER, Fase 7 catálogo, Fase 8 reglas/motor; no están implementados por foundation.
+
+## INT-01 - 2026-11-14 15:28 (America/Mexico_City)
+- **Cambio:** contrato canónico V1 completo en `docs/API_CONTRACT.md`; archivo raíz `API_CONTRACT.md` únicamente de referencia; actualización mínima de `PROJECT_STATUS.md` y de las dos rutas anteriores en `PROJECT_CONTEXT.md` para evitar instrucciones contradictorias.
+- **Decisiones:** rutas canónicas, sobres, procedencia por variable, ausencia→null, catálogo con evidencia, eligibility separado de assessment_status, comparabilidad/empates, snapshots 30 minutos dependientes del proceso y único worker.
+- **Pendientes:** verificación de unidades/productos NASA, reglas/umbrales agronómicos, agregados de dashboard y capacidad/TTL de caché de respuestas. Ninguna regla científica se declara validada.
+- **Validación:** JSON estricto y consistencia documental; sin ejecutar/crear endpoints, modelos o pruebas de negocio. Solo archivos Markdown; no dependencias ni frontend.
+- **Git:** inicio limpio en `feature/backend-core`, base `dad906e`; main remoto consultado coincide. Cambios quedan sin commit/push para revisión.
+
 ## BE-02 - 2026-11-14 13:52 (America/Mexico_City)
 - **Cambio:** entorno backend creado con CPython 3.13.17 x64; dependencias directas fijadas en grupos de `pyproject.toml`, snapshot transitivo `requirements.lock`, configuración de Ruff/Pytest e instrucciones PowerShell.
 - **Motivo:** preparar una base reproducible con venv/pip, sin regenerar estructura ni implementar endpoints o motor.
