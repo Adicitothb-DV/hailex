@@ -1,0 +1,225 @@
+.agroalert {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+.agroalert-hero {
+  padding: clamp(24px, 4vw, 42px);
+  border-radius: var(--radius-lg);
+  color: white;
+  background: linear-gradient(120deg, #064e3b, #0f766e, #0284c7);
+}
+.agroalert-hero h2,
+.agroalert-hero .eyebrow {
+  color: white;
+}
+.agroalert-panel,
+.agroalert-profile {
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card-light);
+  box-shadow: var(--shadow-soft);
+}
+.agroalert-controls,
+.agroalert-map-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 14px;
+}
+.agroalert-controls label,
+.agroalert-map-controls label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+.agroalert-controls select,
+.agroalert-controls input,
+.agroalert-map-controls select {
+  min-height: 42px;
+  padding: 8px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  background: white;
+  color: var(--text-primary);
+}
+.agroalert-map-controls label:has(input[type='checkbox']) {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  min-height: 42px;
+}
+.agroalert-profile {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 18px;
+  background: linear-gradient(120deg, #e2f5e9, #dceef4);
+}
+.agroalert-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.agroalert-kpis > div {
+  padding: 20px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: white;
+  box-shadow: var(--shadow-soft);
+}
+.agroalert-kpis small,
+.agroalert-kpis strong,
+.agroalert-kpis span {
+  display: block;
+}
+.agroalert-kpis strong {
+  margin-block: 8px;
+  font-size: 1.2rem;
+}
+.agroalert-kpis span {
+  font-size: 0.8rem;
+}
+.agroalert-warning {
+  padding: 16px;
+  border: 1px solid #e3d3a4;
+  border-radius: var(--radius-md);
+  background: #fff9e9;
+  color: #4a3d19;
+}
+.agroalert-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.agroalert-tabs button {
+  padding: 12px 16px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  background: white;
+}
+.agroalert-tabs button.active {
+  color: white;
+  background: var(--bg-sidebar);
+}
+.agroalert-map-frame {
+  position: relative;
+  margin-top: 18px;
+  height: clamp(430px, 65vh, 720px);
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: #e2e8e3;
+}
+.agroalert-map {
+  width: 100%;
+  height: 100%;
+}
+.agroalert-map-head,
+.agroalert-map-legend,
+.agroalert-coordinates,
+.agroalert-map-message,
+.agroalert-popup {
+  position: absolute;
+  z-index: 2;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 3px 16px #1a332333;
+  font-size: 0.8rem;
+}
+.agroalert-map-head {
+  top: 12px;
+  left: 12px;
+  right: 60px;
+}
+.agroalert-map-legend {
+  left: 12px;
+  bottom: 38px;
+  display: grid;
+  gap: 6px;
+  min-width: min(250px, 60%);
+}
+.agroalert-coordinates {
+  right: 8px;
+  bottom: 4px;
+}
+.agroalert-map-message {
+  top: 60px;
+  left: 12px;
+}
+.agroalert-map-label,
+.agroalert-landmark {
+  padding: 3px 5px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #123d2d;
+  font-size: 10px;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px #0003;
+  pointer-events: none;
+}
+.agroalert-landmark {
+  background: rgba(255, 255, 255, 0.7);
+}
+.agroalert-popup {
+  top: 60px;
+  right: 58px;
+  width: min(310px, calc(100% - 80px));
+  max-height: 70%;
+  overflow: auto;
+  font-size: 0.82rem;
+}
+.agroalert-popup p {
+  margin-block: 8px;
+}
+.agroalert-popup-close {
+  float: right;
+  border: 0;
+  background: transparent;
+  font-size: 1.4rem;
+}
+.agroalert-extremes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 32px;
+}
+.agroalert-table {
+  overflow-x: auto;
+  margin-block: 16px 28px;
+}
+.agroalert-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.83rem;
+}
+.agroalert-table th,
+.agroalert-table td {
+  padding: 10px;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border-soft);
+}
+.agroalert-chart {
+  width: 100%;
+  min-width: 0;
+  margin-block: 20px;
+}
+@media (max-width: 900px) {
+  .agroalert-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .agroalert-kpis {
+    grid-template-columns: 1fr;
+  }
+  .agroalert-panel {
+    padding: 16px;
+  }
+  .agroalert-map-legend {
+    bottom: 50px;
+  }
+}

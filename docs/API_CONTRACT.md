@@ -1,5 +1,19 @@
 # HaiLex — Contrato API V1
 
+## AgroAlert NASA — integración parcial — 2026-11-15
+
+- `GET /api/v1/agroalert/municipalities`: colección local de 18 municipios y localidades.
+- `GET /api/v1/agroalert/moisture`: `municipality`, `end_date`, `history_days` (1–730);
+  celdas recortadas, lecturas, agregados por fuente, conteo de fallos y fecha de consulta.
+- `GET /api/v1/agroalert/point`: `latitude`, `longitude`, `start_date`, `end_date`.
+- `GET /api/v1/agroalert/regional`: bbox, parámetro permitido y rango de hasta 366 días;
+  devuelve grilla regional separada del flujo municipal, con su fuente y unidad.
+- El formato sigue el sobre V1. La sincronización de límites está disponible solo para
+  un operador local mediante `python -m scripts.sync_agroalert_boundaries`; no hay
+  endpoint de escritura público ni botón de sincronización autorizado todavía.
+- Las geometrías OSM sincronizadas no se presentan como linderos legales; se conserva
+  una copia local anterior y solo se sustituyen los dos municipios seleccionados.
+
 ## Extensión implementada para demo — 2026-11-15
 
 - `POST /api/v1/fields/validate`: `{geometry}`; devuelve área, perímetro y bbox.

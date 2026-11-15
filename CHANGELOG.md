@@ -1,5 +1,15 @@
 # CHANGELOG.md
 
+## AgroAlert NASA — trabajo en curso — 2026-11-15
+
+- Importada la colección municipal fuente y añadida la generación de grilla recortada
+  con pruebas geoespaciales. La integración completa permanece pendiente.
+- Añadidas funciones puras de percentiles y agregación por fuente con pruebas.
+- Incorporados cliente POWER con respaldo, API municipal/puntual/regional y sincronizador
+  local de límites con escritura atómica; falta interfaz y validación integral.
+- Montado el módulo en Parcel Monitoring con controles, mapa, GIBS visual, tablas, CSV y
+  gráficas; sincronizados límites OSM. Permanecen pendientes funciones y validación integral.
+
 ## Inspección de campo — 2026-11-15
 
 - Añadidos puntos orientativos relativos a la distribución NDVI y controles de calidad;

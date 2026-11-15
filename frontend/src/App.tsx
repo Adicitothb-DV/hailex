@@ -17,8 +17,8 @@ const ClimateIntelligencePage = lazy(() =>
   })),
 );
 const RotationStudioPage = lazy(() =>
-  import('./features/rotation-studio/MonitoringPage').then((m) => ({
-    default: m.MonitoringPage,
+  import('./features/agroalert/AgroAlertPage').then((m) => ({
+    default: m.AgroAlertPage,
   })),
 );
 const AnalysisInsightsPage = lazy(() =>

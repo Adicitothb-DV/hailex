@@ -1,5 +1,22 @@
 # PROJECT_STATUS.md — Estado Actual del Proyecto
 
+## AgroAlert NASA — integración en curso — 2026-11-15
+
+- Se importó la colección GeoJSON original y se inició el cálculo de celdas recortadas.
+- Se añadieron reglas independientes para faltantes, percentiles, estado y agregación por fuente.
+- El módulo está montado en Parcel Monitoring con filtros, mapa, capas base, GIBS visual,
+  indicadores, tablas, CSV y gráficas separadas por fuente. La implementación aún es parcial.
+- Sincronización real OSM validada con respaldo y reemplazo atómico: El Marqués 1157
+  vértices y Colón 878; OSM no equivale por sí solo a un límite legal verificado.
+- Consulta real POWER del 6–10 de octubre de 2026 tras sincronizar: 15/15 celdas de
+  El Marqués y 14/14 de Colón, con MERRA-2 identificado como índice.
+- Verificaciones: 112 pruebas backend, Ruff, build/lint frontend; una prueba de navegador
+  aprobó ambos municipios y controles antes de la sincronización. La repetición posterior
+  agotó el tiempo de DevTools, así que no se afirma verificación integral final.
+- Pendientes: operación de sincronización autorizada desde UI, helper visual de mapa
+  regional, revisión de todos los detalles de la especificación y prueba integral final.
+  Avisos: TestClient deprecado, chunk MapLibre grande y espacio libre de disco bajo.
+
 ## Mejora de inspección — 2026-11-15
 
 - El reporte prioriza hasta tres centros de píxel NDVI del 20 % inferior, separados
