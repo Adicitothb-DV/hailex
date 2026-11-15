@@ -8,7 +8,7 @@ import { useApp } from '../../app/AppContext';
 import { LocationSelect } from '../../components/LocationSelect';
 import { PageHeading } from '../../components/PageHeading';
 import { api, apiBase } from '../../services/api';
-import type { FieldMetrics, PolygonGeometry, Scene } from '../../types/monitoring';
+import type { FieldMetrics, PolygonGeometry, SavedAnalysis, Scene } from '../../types/monitoring';
 import type { ClimateSeries, VariableId } from '../../types/api';
 
 maplibregl.setWorkerUrl(workerUrl);
@@ -40,6 +40,38 @@ export function MonitoringPage() {
   const [message, setMessage] = useState('');
   const [climate, setClimate] = useState<ClimateSeries | null>(null);
   const [climateMessage, setClimateMessage] = useState('');
+  const [saved, setSaved] = useState<SavedAnalysis[]>([]);
+  const [savedId, setSavedId] = useState('');
+  const [savedMessage, setSavedMessage] = useState('');
+  const inspectionMarkers = useRef<maplibregl.Marker[]>([]);
+
+  async function refreshSaved() {
+    try {
+      const result = await api.savedAnalyses();
+      setSaved(result.data);
+      setSavedMessage(result.data.length ? '' : 'No hay resultados archivados en este equipo.');
+    } catch (error) {
+      setSavedMessage(
+        error instanceof Error ? error.message : 'No se pudo consultar el historial.',
+      );
+    }
+  }
+  useEffect(() => {
+    const controller = new AbortController();
+    api
+      .savedAnalyses(controller.signal)
+      .then((result) => {
+        setSaved(result.data);
+        setSavedMessage(result.data.length ? '' : 'No hay resultados archivados en este equipo.');
+      })
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted)
+          setSavedMessage(
+            error instanceof Error ? error.message : 'No se pudo consultar el historial.',
+          );
+      });
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     if (!container.current) return;
@@ -160,6 +192,69 @@ export function MonitoringPage() {
       paint: { 'raster-opacity': 0.85 },
     });
   }, [fieldAnalysis, layer, mapReady]);
+  useEffect(() => {
+    inspectionMarkers.current.forEach((marker) => marker.remove());
+    inspectionMarkers.current = [];
+    const instance = map.current;
+    if (!instance || !mapReady || fieldAnalysis?.status !== 'success') return;
+    for (const point of fieldAnalysis.inspection?.points ?? []) {
+      const marker = new maplibregl.Marker({ color: '#b94c25' })
+        .setLngLat([point.longitude, point.latitude])
+        .setPopup(
+          new maplibregl.Popup().setText(
+            `Punto ${point.id}: NDVI ${point.ndvi.toFixed(3)}. Verificar en campo.`,
+          ),
+        )
+        .addTo(instance);
+      inspectionMarkers.current.push(marker);
+    }
+    return () => {
+      inspectionMarkers.current.forEach((marker) => marker.remove());
+      inspectionMarkers.current = [];
+    };
+  }, [fieldAnalysis, mapReady]);
+
+  async function openSaved() {
+    if (!savedId) return;
+    setSavedMessage('Abriendo resultado archivado…');
+    try {
+      const result = await api.savedAnalysis(savedId);
+      const geometry = result.data.aoi?.geometry;
+      if (!geometry || geometry.type !== 'Polygon')
+        throw new Error('Este resultado no contiene un polígono compatible.');
+      const tool = draw.current;
+      if (!tool || !mapReady)
+        throw new Error('Espera a que cargue el mapa para abrir el resultado.');
+      tool.clear();
+      const added = tool.addFeatures([
+        { type: 'Feature', geometry, properties: { mode: 'polygon' } },
+      ]);
+      if (added.some((entry) => !entry.valid))
+        throw new Error('El polígono archivado no se puede mostrar.');
+      tool.setMode('select');
+      setFieldGeometry(geometry);
+      setFieldAnalysis(result.data);
+      setClimate(null);
+      setClimateMessage('');
+      setScenes([]);
+      setSelectedScene('');
+      setName(result.data.aoi?.name || 'Parcela');
+      setCrop(result.data.aoi?.crop || '');
+      if (result.data.bbox) {
+        const [west, south, east, north] = result.data.bbox;
+        map.current?.fitBounds(
+          [
+            [west, south],
+            [east, north],
+          ],
+          { padding: 60, maxZoom: 17 },
+        );
+      }
+      setSavedMessage('Resultado histórico archivado localmente; no es una consulta en vivo.');
+    } catch (error) {
+      setSavedMessage(error instanceof Error ? error.message : 'No se pudo abrir el resultado.');
+    }
+  }
 
   const payload = () => ({
     geometry: fieldGeometry,
@@ -201,6 +296,7 @@ export function MonitoringPage() {
       const result = await api.analyzeField(payload());
       setFieldAnalysis(result.data);
       setState(result.data.status);
+      if (result.data.analysis_id) void refreshSaved();
       if (result.data.message) setMessage(result.data.message);
     } catch (e) {
       setState('error');
@@ -321,6 +417,29 @@ export function MonitoringPage() {
         <aside className="surface location-panel">
           <p className="eyebrow">CONFIGURACIÓN</p>
           <LocationSelect />
+          <details>
+            <summary>Resultados históricos de esta computadora</summary>
+            <p>Recupera análisis archivados sin consultar nuevamente el catálogo satelital.</p>
+            <label className="field">
+              Resultado guardado
+              <select value={savedId} onChange={(event) => setSavedId(event.target.value)}>
+                <option value="">Seleccionar…</option>
+                {saved.map((item) => (
+                  <option key={item.analysis_id} value={item.analysis_id}>
+                    {item.name || 'Parcela'} ·{' '}
+                    {item.acquired_at?.slice(0, 10) || 'fecha desconocida'} · {item.status}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button className="button" disabled={!savedId || !mapReady} onClick={openSaved}>
+              Abrir resultado archivado
+            </button>
+            <button className="button" onClick={refreshSaved}>
+              Actualizar historial
+            </button>
+            {savedMessage && <p role="status">{savedMessage}</p>}
+          </details>
           <label className="field">
             Nombre
             <input value={name} maxLength={100} onChange={(e) => setName(e.target.value)} />
@@ -420,6 +539,11 @@ export function MonitoringPage() {
           </p>
           <h2>{fieldAnalysis.aoi?.name}</h2>
           <p>
+            Municipio declarado: {fieldAnalysis.aoi?.municipality_label || 'No especificado'} ·
+            Cultivo declarado: {fieldAnalysis.aoi?.crop || 'No especificado'}. No se verifica
+            pertenencia municipal.
+          </p>
+          <p>
             Sentinel-2 L2A · {fieldAnalysis.acquired_at} · {fieldAnalysis.item_id}
           </p>
           <p>
@@ -453,6 +577,51 @@ export function MonitoringPage() {
           ) : (
             <p>Cobertura insuficiente: no se priorizan zonas de inspección.</p>
           )}
+          <section aria-label="Puntos de inspección orientativos">
+            <h3>Puntos orientativos para inspección</h3>
+            {!fieldAnalysis.inspection ? (
+              <p>
+                Este resultado anterior no incluye puntos de inspección; ejecuta un análisis nuevo
+                para generarlos.
+              </p>
+            ) : (
+              <>
+                <p>{fieldAnalysis.inspection.reason}</p>
+                {fieldAnalysis.inspection.points.length > 0 && (
+                  <>
+                    <p>
+                      Se seleccionan hasta tres centros de píxel con NDVI dentro del 20 % inferior
+                      del área válida, separados al menos 30 m. Son prioridades relativas, no
+                      límites de zonas ni diagnósticos.
+                    </p>
+                    <ol>
+                      {fieldAnalysis.inspection.points.map((point) => (
+                        <li key={point.id}>
+                          Punto {point.id}: {point.latitude.toFixed(6)},{' '}
+                          {point.longitude.toFixed(6)} · NDVI {point.ndvi.toFixed(3)}{' '}
+                          <button
+                            className="button"
+                            onClick={() =>
+                              map.current?.flyTo({
+                                center: [point.longitude, point.latitude],
+                                zoom: 18,
+                              })
+                            }
+                          >
+                            Ver en mapa
+                          </button>
+                        </li>
+                      ))}
+                    </ol>
+                    <p>
+                      En la visita, observa la vegetación y el manejo local; compara con otras
+                      partes de la parcela antes de tomar decisiones.
+                    </p>
+                  </>
+                )}
+              </>
+            )}
+          </section>
           {[...(fieldAnalysis.warnings || []), ...(fieldAnalysis.limitations || [])].map((w) => (
             <p className="fine-print" key={w}>
               {w}

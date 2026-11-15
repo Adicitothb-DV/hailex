@@ -13,6 +13,7 @@ const browserPath =
   ].find(existsSync);
 assert.ok(browserPath, 'Chrome or Edge required');
 const profile = mkdtempSync(join(tmpdir(), 'hailex-monitoring-'));
+const baseUrl = process.env.HAILEX_TEST_URL ?? 'http://127.0.0.1:5173';
 const browser = spawn(
   browserPath,
   [
@@ -71,7 +72,15 @@ async function clickAt(x, y) {
 try {
   const portFile = join(profile, 'DevToolsActivePort');
   for (let i = 0; !existsSync(portFile) && i < 100; i++) await delay(100);
-  const port = readFileSync(portFile, 'utf8').split('\n')[0];
+  let port = '';
+  for (let i = 0; i < 100 && !port; i++) {
+    try {
+      port = readFileSync(portFile, 'utf8').split('\n')[0];
+    } catch {
+      await delay(100);
+    }
+  }
+  assert.ok(port, 'Chrome DevTools port unavailable');
   const targets = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
   socket = new WebSocket(targets.find((item) => item.type === 'page').webSocketDebuggerUrl);
   await new Promise((ok, fail) => {
@@ -96,7 +105,7 @@ try {
     deviceScaleFactor: 1,
     mobile: false,
   });
-  await send('Page.navigate', { url: 'http://127.0.0.1:5173/#/rotation-studio' });
+  await send('Page.navigate', { url: `${baseUrl}/#/rotation-studio` });
   await waitFor(
     "[...document.querySelectorAll('button')].some(b=>b.textContent.includes('Dibujar parcela')&&!b.disabled)",
     600,
@@ -131,6 +140,15 @@ try {
     'PASS escena y análisis',
     (await evaluate("document.querySelector('.monitoring-result').innerText")).slice(0, 500),
   );
+  assert.ok(
+    (await evaluate("document.querySelector('.monitoring-result').innerText")).includes(
+      'Puntos orientativos para inspección',
+    ),
+  );
+  await waitFor(
+    'document.querySelectorAll(\'[aria-label="Puntos de inspección orientativos"] li\').length > 0',
+  );
+  assert.ok(await evaluate("document.querySelectorAll('.maplibregl-marker').length > 0"));
   await evaluate(
     "[...document.querySelectorAll('button')].find(b=>b.textContent==='NDVI').click()",
   );
@@ -175,6 +193,23 @@ try {
   writeFileSync(join(evidence, 'agriculture.png'), Buffer.from(shot.data, 'base64'));
   assert.equal(errors.length, 0, JSON.stringify(errors));
   console.log(`PASS NDVI/NDMI y datos SIAP; capturas ${evidence}`);
+  await evaluate("location.hash='#/rotation-studio'");
+  await waitFor(
+    'Boolean(document.querySelector(\'.location-panel details select option[value]:not([value=""])\'))',
+    300,
+  );
+  await evaluate(
+    "document.querySelector('.location-panel details').open=true; const select=document.querySelector('.location-panel details select'); select.value=select.options[1].value; select.dispatchEvent(new Event('change',{bubbles:true}));",
+  );
+  await waitFor(
+    "[...document.querySelectorAll('button')].some(b=>b.textContent.includes('Abrir resultado archivado')&&!b.disabled)",
+  );
+  await evaluate(
+    "[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Abrir resultado archivado')).click()",
+  );
+  await waitFor("document.body.innerText.includes('Resultado histórico archivado localmente')");
+  assert.ok(await evaluate("Boolean(document.querySelector('.monitoring-result'))"));
+  console.log('PASS recuperación de resultado archivado');
 } finally {
   socket?.close();
   browser.kill();

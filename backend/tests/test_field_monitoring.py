@@ -1,3 +1,4 @@
+import json
 from datetime import date
 
 import numpy as np
@@ -47,6 +48,50 @@ def test_png_transparency(tmp_path):
     field.save_index(tmp_path / "index.png", np.array([[0.5, np.nan]], dtype="float32"))
     pixels = np.array(Image.open(tmp_path / "index.png"))
     assert pixels[0, 0, 3] > 0 and pixels[0, 1, 3] == 0
+
+
+def test_inspection_points_quality_and_location():
+    bounds = (-100.332, 20.606, -100.331, 20.607)
+    values = np.linspace(0.1, 0.8, 100, dtype="float32").reshape(10, 10)
+    values[0, 0] = np.nan
+    result = field.inspection_points(values, GEOMETRY, bounds, 99)
+    assert result["status"] == "available"
+    assert 1 <= len(result["points"]) <= 3
+    assert all(point["ndvi"] <= result["threshold_p20"] for point in result["points"])
+    assert all(
+        bounds[0] < p["longitude"] < bounds[2] and bounds[1] < p["latitude"] < bounds[3]
+        for p in result["points"]
+    )
+    assert field.inspection_points(values, GEOMETRY, bounds, 69)["points"] == []
+    assert (
+        field.inspection_points(np.ones((10, 10)), GEOMETRY, bounds, 100)["status"]
+        == "not_assessable"
+    )
+    assert (
+        field.inspection_points(np.full((2, 2), np.nan), GEOMETRY, bounds, 0)["status"]
+        == "not_assessable"
+    )
+
+
+def test_saved_analyses_api_and_missing_layers(monkeypatch, tmp_path, api_request):
+    monkeypatch.setattr(field, "ROOT", tmp_path)
+    directory = tmp_path / ("a" * 32)
+    directory.mkdir()
+    manifest = {
+        "analysis_id": directory.name,
+        "aoi": {"name": "Prueba"},
+        "status": "success",
+        "created_at": "2025-01-01T00:00:00Z",
+    }
+    (directory / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    assert api_request("GET", "/api/v1/fields/analyses").json()["data"] == []
+    for layer in ("true-color", "ndvi", "ndmi"):
+        (directory / f"{layer}.png").write_bytes(b"test")
+    result = api_request("GET", "/api/v1/fields/analyses").json()["data"]
+    assert len(result) == 1 and result[0]["name"] == "Prueba"
+    assert (
+        api_request("GET", f"/api/v1/fields/analyses/{directory.name}").json()["data"] == manifest
+    )
 
 
 def test_reject_untrusted_assets():

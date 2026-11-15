@@ -1,5 +1,14 @@
 # PROJECT_STATUS.md — Estado Actual del Proyecto
 
+## Mejora de inspección — 2026-11-15
+
+- El reporte prioriza hasta tres centros de píxel NDVI del 20 % inferior, separados
+  al menos 30 m, solo con cobertura mínima y variabilidad; no diagnostica causas.
+- Resultados archivados pueden recuperarse localmente sin consultar STAC. Análisis
+  antiguos no incluyen puntos nuevos; necesitan reprocesarse para obtenerlos.
+- Prueba real E2E de dibujo, análisis, puntos, clima NASA POWER, SIAP e historial; 88 pruebas
+  backend y verificaciones frontend aprobadas. Comparación temporal sigue pendiente.
+
 ## Demo de monitoreo — 2026-11-15 (estado actual)
 
 - Prototipo local con dibujo/edición de polígono en Parcel Monitoring, validación geodésica,
@@ -12,7 +21,7 @@
   2015–2020; precios y procedencias permanecen separados, sin pronóstico confiable.
 - Pruebas: 86 backend, Ruff, typecheck, lint, formato, build y navegador V2/monitoreo.
 - Limitaciones importantes: no hay comparación temporal, polígonos automáticos de zonas,
-  selección histórica sin acceso STAC, cache con limpieza/TTL, proveedor CDSE ni auditoría
+  cache con limpieza/TTL, proveedor CDSE ni auditoría
   formal de accesibilidad. Las anomalías de offset de Earth Search requieren cautela.
 - Los apartados siguientes registran fases anteriores y no sustituyen este estado.
 

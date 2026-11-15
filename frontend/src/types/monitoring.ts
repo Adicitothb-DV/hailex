@@ -10,6 +10,14 @@ export type IndexStats = {
   min: number;
   max: number;
 };
+export type InspectionPoint = { id: number; latitude: number; longitude: number; ndvi: number };
+export type SavedAnalysis = {
+  analysis_id: string;
+  name: string | null;
+  item_id: string | null;
+  acquired_at: string | null;
+  status: string;
+};
 export type FieldAnalysis = {
   status: 'success' | 'insufficient_data' | 'no_clear_scene';
   message?: string;
@@ -28,6 +36,13 @@ export type FieldAnalysis = {
   valid_pixel_percent_in_aoi?: number;
   ndmi_valid_pixel_percent_in_aoi?: number;
   indices?: { ndvi: IndexStats | null; ndmi: IndexStats | null };
+  inspection?: {
+    status: 'available' | 'not_assessable';
+    points: InspectionPoint[];
+    reason: string;
+    threshold_p20?: number;
+    valid_pixels?: number;
+  };
   bbox?: [number, number, number, number];
   layers?: Record<string, string>;
   warnings?: string[];

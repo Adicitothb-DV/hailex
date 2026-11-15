@@ -98,6 +98,14 @@ async def create_analysis(request: FieldRequest):
         )
 
 
+@router.get("/analyses")
+def list_saved_analyses():
+    return SuccessResponse(
+        data=service.list_analyses(),
+        warnings=["Resultados archivados localmente; no son consultas en vivo."],
+    )
+
+
 @router.get("/analyses/{analysis_id}")
 def get_analysis(analysis_id: str):
     import json

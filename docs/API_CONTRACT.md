@@ -9,6 +9,9 @@
   o `insufficient_data`; errores de proveedor se entregan en el sobre de error V1.
 - `GET /api/v1/fields/analyses/{id}`, `/report` y `/layers/{true-color|ndvi|ndmi}`;
   capas PNG locales; ID hexadecimal validado. Persistencia local sin garantía de retención.
+- `GET /api/v1/fields/analyses` lista hasta 100 resultados locales con capas presentes.
+  Los nuevos análisis incluyen `inspection` con estado, puntos y reglas operativas NDVI;
+  los análisis históricos pueden no contener este campo. No son diagnósticos.
 - `GET /api/v1/agriculture/series` admite `region`, `crop`, `cycle`, `mode` y devuelve
   filas y cobertura. `GET /api/v1/agriculture/coverage` devuelve cobertura global.
   `source_file_missing` representa ausencia del libro; precios originales permanecen

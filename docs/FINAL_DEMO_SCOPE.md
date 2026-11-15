@@ -27,6 +27,12 @@ no terminados; este archivo describe lo efectivamente implementado.
 8. Agricultural Context lee el libro local y mantiene ciclo, modalidad y las columnas
    `Preciomediorural`, `Precio` y cociente valor/volumen separadas. No se confirma la
    procedencia original ni el diccionario monetario. Sin pronóstico confiable.
+9. El reporte ofrece hasta tres puntos de inspección: centros de píxel del 20 % inferior
+   del NDVI válido, con separación mínima de 30 m. Se necesitan al menos 20 píxeles,
+   cobertura mínima del 70 % en ambos índices y diferencia P90−P10 NDVI de al menos 0.05;
+   son reglas operativas de priorización relativa, no umbrales agronómicos. Si faltan
+   datos suficientes no se proponen puntos. Los resultados históricos locales se pueden
+   abrir sin consultar STAC; resultados anteriores no tienen estos puntos hasta reprocesar.
 
 ## Prueba real y evidencia
 
@@ -43,10 +49,10 @@ no terminados; este archivo describe lo efectivamente implementado.
 
 ## Limitaciones abiertas
 
-- No hay comparación temporal, segmentación/vectorización de zonas o lista geográfica
-  automatizada de inspección. No hay gráficos SIAP ni filtro de año; tabla descriptiva.
-- Cache local sin TTL ni limpieza automática; siempre requiere STAC antes de reutilizar
-  un análisis y no hay selector de resultados históricos desconectado. Un solo worker.
+- No hay comparación temporal ni segmentación/vectorización de zonas. Los puntos no
+  identifican causas ni sustituyen inspección. No hay gráficos SIAP ni filtro de año.
+- Cache local sin TTL ni limpieza automática; el análisis nuevo sigue requiriendo STAC,
+  aunque los resultados guardados se pueden abrir localmente. Un solo worker.
 - Sin paginación STAC, sin CDSE OAuth, GIBS, SMAP ni sequía. Servicio externo best-effort.
 - Hay incertidumbre conocida en metadatos de escala/offset Earth Search; se aceptan solo
   escenas con `earthsearch:boa_offset_applied=true`, se usa escala publicada y offset 0.
@@ -76,6 +82,13 @@ npm.cmd run dev -- --host 127.0.0.1 --port 5173
 Abrir `http://127.0.0.1:5173`. El Excel original debe permanecer en
 `backend/data/raw/siap/Consolidado_El_Marques_Colon_Cultivos.xlsx`; si falta se informa
 `source_file_missing`. No se necesitan credenciales para Sentinel-2 o POWER.
+
+Si Windows informa que los puertos están ocupados, primero comprueba si HaiLex ya está
+abierto en esa dirección; no es necesario lanzar dos copias. Tras modificar el backend,
+detén y reinicia solo el proceso Uvicorn correspondiente para cargar el código actualizado.
+Para identificarlo: `Get-NetTCPConnection -LocalPort 8000,5173 -State Listen`.
+El mapa base requiere conexión; abrir el resultado archivado en pantalla requiere que
+MapLibre haya cargado, aunque recuperar sus datos desde el backend no requiere STAC.
 
 Pruebas: `python -m pytest -q`, `python -m ruff check .` desde backend; `npm.cmd run
 typecheck`, `lint`, `format:check`, `build`, `test:ui` y `test:monitoring` desde frontend.

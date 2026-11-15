@@ -1,5 +1,12 @@
 # CHANGELOG.md
 
+## Inspección de campo — 2026-11-15
+
+- Añadidos puntos orientativos relativos a la distribución NDVI y controles de calidad;
+  coordenadas y marcadores para facilitar inspección sin prescribir ni diagnosticar.
+- Añadido selector de análisis históricos locales y apertura sin consulta a STAC.
+- Pruebas unitarias y de navegador del flujo satelital y la recuperación local.
+
 ## Demo de monitoreo — 2026-11-15
 
 - Dibujo con Terra Draw, validación AOI, búsqueda Earth Search Sentinel-2 L2A, lectura

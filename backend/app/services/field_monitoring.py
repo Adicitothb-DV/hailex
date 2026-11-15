@@ -17,13 +17,13 @@ from rasterio.enums import Resampling
 from rasterio.features import geometry_mask
 from rasterio.transform import from_bounds
 from rasterio.vrt import WarpedVRT
-from shapely.geometry import shape
+from shapely.geometry import Point, shape
 
 ROOT = Path(__file__).resolve().parents[2] / "data" / "processed" / "field_analyses"
 COLLECTION = "sentinel-2-l2a"
 ASSETS = ("red", "green", "blue", "nir", "swir16", "scl")
 HOST = "sentinel-cogs.s3.us-west-2.amazonaws.com"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 GEOD = Geod(ellps="WGS84")
 
 
@@ -175,6 +175,93 @@ def statistics(values: np.ndarray) -> dict | None:
     }
 
 
+def inspection_points(values: np.ndarray, geometry: dict, bounds: tuple, coverage: float) -> dict:
+    """Identify spatially separated low-NDVI pixel centers, not diagnoses or parcels."""
+    valid = np.isfinite(values)
+    sample = values[valid]
+    result = {"status": "not_assessable", "points": [], "method": "ndvi_relative_p20"}
+    if coverage < 70 or sample.size < 20:
+        result["reason"] = "Se requieren al menos 20 píxeles NDVI válidos y 70 % de cobertura."
+        return result
+    p10, p20, p90 = np.percentile(sample, [10, 20, 90])
+    if p90 - p10 < 0.05:
+        result["reason"] = "Variabilidad espectral insuficiente para priorizar puntos."
+        return result
+    polygon = shape(geometry)
+    height, width = values.shape
+    left, bottom, right, top = bounds
+    rows, cols = np.where(valid & (values <= p20))
+    order = np.argsort(values[rows, cols], kind="stable")
+    points = []
+    for idx in order:
+        row, col = int(rows[idx]), int(cols[idx])
+        lon = left + (col + 0.5) * (right - left) / width
+        lat = top - (row + 0.5) * (top - bottom) / height
+        if not polygon.covers(Point(lon, lat)):
+            continue
+        if any(
+            abs(GEOD.inv(lon, lat, point["longitude"], point["latitude"])[2]) < 30
+            for point in points
+        ):
+            continue
+        points.append(
+            {
+                "id": len(points) + 1,
+                "longitude": lon,
+                "latitude": lat,
+                "ndvi": float(values[row, col]),
+            }
+        )
+        if len(points) == 3:
+            break
+    result.update(
+        {
+            "status": "available" if points else "not_assessable",
+            "points": points,
+            "threshold_p20": float(p20),
+            "valid_pixels": int(sample.size),
+            "reason": "Puntos relativos, no diagnóstico; verificar en campo."
+            if points
+            else "No hay centros de píxel válidos dentro del polígono.",
+        }
+    )
+    return result
+
+
+def list_analyses() -> list[dict]:
+    """List previously archived local manifests, without disclosing disk paths."""
+    if not ROOT.is_dir():
+        return []
+    records = []
+    for directory in ROOT.iterdir():
+        if not directory.is_dir() or not re.fullmatch(r"[a-f0-9]{32}", directory.name):
+            continue
+        manifest = directory / "manifest.json"
+        try:
+            if manifest.stat().st_size > 2_000_000:
+                continue
+            value = json.loads(manifest.read_text(encoding="utf-8"))
+            if value.get("analysis_id") != directory.name or not isinstance(value.get("aoi"), dict):
+                continue
+            if not all(
+                (directory / f"{layer}.png").is_file() for layer in ("true-color", "ndvi", "ndmi")
+            ):
+                continue
+            records.append(
+                {
+                    "analysis_id": directory.name,
+                    "created_at": value.get("created_at"),
+                    "acquired_at": value.get("acquired_at"),
+                    "status": value.get("status"),
+                    "name": value["aoi"].get("name"),
+                    "item_id": value.get("item_id"),
+                }
+            )
+        except (OSError, ValueError, TypeError):
+            continue
+    return sorted(records, key=lambda item: str(item.get("created_at") or ""), reverse=True)[:100]
+
+
 def grid(bounds: tuple, resolution: int) -> tuple:
     left, bottom, right, top = bounds
     lon_m = abs(GEOD.inv(left, (bottom + top) / 2, right, (bottom + top) / 2)[2])
@@ -311,6 +398,7 @@ def analyze(
         "ndmi_valid_pixel_percent_in_aoi": coverage20,
         "masked_pixel_percent_in_aoi": 100 - coverage10,
         "indices": {"ndvi": statistics(ndvi), "ndmi": statistics(ndmi)},
+        "inspection": inspection_points(ndvi, geometry, bounds, min(coverage10, coverage20)),
         "native_resolution_by_index": {
             "ndvi": "B08 y B04: 10 m",
             "ndmi": "B08: 10 m, B11: 20 m; salida aproximada 20 m",
