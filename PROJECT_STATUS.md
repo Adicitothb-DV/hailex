@@ -1,5 +1,18 @@
 # PROJECT_STATUS.md — Estado Actual del Proyecto
 
+## Rotación limitada — 2026-11-15
+
+- Asesor Agrícola conserva el perfil local, sustituye la tabla SIAP por formulario y consulta
+  `/api/v1/rotation-workspace/compare`; compara cuatro cultivos por familia cuando el usuario
+  solicita el criterio y declara cultivo anterior. No es evaluación agronómica integral.
+- Permite escoger un análisis satelital archivado como contexto descriptivo, sin usar índices
+  para decidir cultivos. Municipio y modalidad son declarados; suelo, clima, calendario,
+  requerimientos hídricos y economía permanecen no evaluables. No hay predicción numérica.
+- Groq y conversación no implementados por prohibición de LLM en runtime en AGENTS.md;
+  INEGI es una referencia de índices, no precios por producto. El perfil no se envía al motor.
+- Verificación: 117 pruebas backend y Ruff; build, typecheck y lint frontend; prueba de
+  navegador del perfil y comparador con backend real.
+
 ## Perfil agrícola local — 2026-11-15
 
 - Agricultural Context incluye un perfil opcional editable y versionado en localStorage,

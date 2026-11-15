@@ -1,5 +1,15 @@
 # HaiLex — Contrato API V1
 
+## Comparación limitada de familias — 2026-11-15
+
+- `POST /api/v1/rotation-workspace/compare`: acepta `previous_crop` (ID de catálogo o
+  null), `prioritize_family_change` (booleano), `region` (ID piloto o null),
+  `water_regime` (`unknown`, `rainfed`, `irrigated`) y `analysis_id` (ID de análisis
+  archivado o null). Devuelve opciones, factores, fuentes, limitaciones y contexto
+  satelital opcional; no retorna forecast numérico. Ordena exclusivamente según cambio
+  de familia cuando lo pide el usuario y el cultivo anterior es conocido. No evalúa
+  aptitud, agua, clima, rentabilidad ni compatibilidad agronómica.
+
 ## AgroAlert NASA — integración parcial — 2026-11-15
 
 - `GET /api/v1/agroalert/municipalities`: colección local de 18 municipios y localidades.

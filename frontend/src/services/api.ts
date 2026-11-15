@@ -6,6 +6,7 @@ import type {
   PolygonGeometry,
   Scene,
   SavedAnalysis,
+  RotationComparison,
 } from '../types/monitoring';
 
 const base = (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000').replace(/\/$/, '');
@@ -121,6 +122,7 @@ function validCatalog(value: unknown): value is CropCatalog {
 }
 export const api = {
   savedAnalyses: (signal?: AbortSignal) => request<SavedAnalysis[]>('/fields/analyses', signal),
+  compareRotation: (body: unknown) => post<RotationComparison>('/rotation-workspace/compare', body),
   savedAnalysis: (id: string, signal?: AbortSignal) =>
     request<FieldAnalysis>(`/fields/analyses/${encodeURIComponent(id)}`, signal),
   validateField: (geometry: PolygonGeometry) =>

@@ -60,7 +60,7 @@ const routes = [
   ['earth-explorer', 'Earth Explorer'],
   ['climate-intelligence', 'Climate Intelligence'],
   ['rotation-studio', 'Parcel Monitoring'],
-  ['analysis-insights', 'Agricultural Context'],
+  ['analysis-insights', 'Asesor Agrícola'],
 ];
 try {
   const portFile = join(profile, 'DevToolsActivePort');
@@ -199,11 +199,7 @@ try {
   );
   assert.equal(await evaluate("localStorage.getItem('hailex-agricultural-profile-v1')"), null);
   console.log('PASS profile save, reload, edit and confirmed deletion');
-  await waitFor("Boolean(document.querySelector('.agriculture-table tbody tr'))");
-  assert.ok(
-    (await evaluate('document.body.innerText')).includes('2015, 2016, 2017, 2018, 2019, 2020'),
-  );
-  console.log('PASS historial agrícola y brecha temporal');
+  assert.ok((await evaluate('document.body.innerText')).includes('Explorar rotación de cultivos'));
   await evaluate("location.hash='#/climate-intelligence'");
   await waitFor("Boolean(document.querySelector('.climate-form'))");
   await evaluate(
@@ -245,7 +241,7 @@ try {
   );
   console.log('PASS disconnected backend and retry state');
   await evaluate("location.hash='#/analysis-insights'");
-  await waitFor("Boolean(document.querySelector('[role=alert]'))");
+  await waitFor("document.body.innerText.includes('No se pudieron consultar análisis archivados')");
   console.log('PASS agricultural backend failure');
   await send('Network.setBlockedURLs', { urls: [] });
   for (const [route] of routes) {

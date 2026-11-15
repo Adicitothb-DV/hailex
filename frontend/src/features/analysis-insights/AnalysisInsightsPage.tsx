@@ -1,182 +1,262 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { PageHeading } from '../../components/PageHeading';
 import { api } from '../../services/api';
-import type { AgricultureData } from '../../types/monitoring';
+import type { RotationComparison, SavedAnalysis } from '../../types/monitoring';
 import { AgriculturalProfile } from './AgriculturalProfile';
 
-const format = (value: number | null) =>
-  value === null ? 'No disponible' : value.toLocaleString('es-MX', { maximumFractionDigits: 2 });
+const crops = [
+  ['maiz_forrajero', 'Maíz forrajero en verde'],
+  ['sorgo', 'Sorgo forrajero en verde'],
+  ['alfalfa', 'Alfalfa verde'],
+  ['cebada', 'Cebada grano'],
+] as const;
 
 export function AnalysisInsightsPage() {
-  const [region, setRegion] = useState('el_marques_queretaro');
-  const [crop, setCrop] = useState('');
-  const [cycle, setCycle] = useState('');
-  const [mode, setMode] = useState('');
-  const [result, setResult] = useState<AgricultureData | null>(null);
-  const [status, setStatus] = useState('loading');
+  const [previous, setPrevious] = useState('');
+  const [region, setRegion] = useState('');
+  const [water, setWater] = useState('unknown');
+  const [priority, setPriority] = useState(false);
+  const [analysisId, setAnalysisId] = useState('');
+  const [analyses, setAnalyses] = useState<SavedAnalysis[]>([]);
+  const [analysisMessage, setAnalysisMessage] = useState('Cargando análisis archivados…');
+  const [result, setResult] = useState<RotationComparison | null>(null);
+  const [status, setStatus] = useState('idle');
   const [error, setError] = useState('');
+  const requestVersion = useRef(0);
+
   useEffect(() => {
     const controller = new AbortController();
-    const params = new URLSearchParams({ region });
-    if (crop) params.set('crop', crop);
-    if (cycle) params.set('cycle', cycle);
-    if (mode) params.set('mode', mode);
     api
-      .agriculture(params, controller.signal)
-      .then((r) => {
-        setResult(r.data);
-        setStatus(r.data.status);
-        setError('');
+      .savedAnalyses(controller.signal)
+      .then(({ data }) => {
+        setAnalyses(data);
+        setAnalysisMessage(data.length ? '' : 'No hay análisis archivados.');
       })
-      .catch((e: unknown) => {
-        if (!controller.signal.aborted) {
-          setStatus('error');
-          setError(e instanceof Error ? e.message : 'No se pudo consultar el historial.');
-        }
+      .catch(() => {
+        if (!controller.signal.aborted)
+          setAnalysisMessage('No se pudieron consultar análisis archivados.');
       });
     return () => controller.abort();
-  }, [region, crop, cycle, mode]);
+  }, []);
+
+  function invalidate() {
+    requestVersion.current += 1;
+    setResult(null);
+    setError('');
+    setStatus('idle');
+  }
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const version = ++requestVersion.current;
+    setStatus('loading');
+    setError('');
+    setResult(null);
+    try {
+      const response = await api.compareRotation({
+        previous_crop: previous || null,
+        region: region || null,
+        water_regime: water,
+        prioritize_family_change: priority,
+        analysis_id: analysisId || null,
+      });
+      if (version !== requestVersion.current) return;
+      setResult(response.data);
+      setStatus('success');
+    } catch (err) {
+      if (version !== requestVersion.current) return;
+      setError(err instanceof Error ? err.message : 'No se pudo comparar.');
+      setStatus('error');
+    }
+  }
+
   return (
     <>
       <PageHeading
-        eyebrow="HISTORIAL AGRÍCOLA"
-        title="Agricultural Context"
-        description="Consulta el libro consolidado proporcionado por el equipo. Sus registros son municipales, no mediciones de la parcela."
+        eyebrow="PERFIL Y ROTACIÓN"
+        title="Asesor Agrícola"
+        description="Registra tu contexto y compara alternativas de rotación con criterios transparentes."
       />
       <AgriculturalProfile />
-      <section className="surface">
-        <div className="parcel-grid">
-          <label className="field">
-            Municipio
-            <select
-              value={region}
-              onChange={(e) => {
-                setStatus('loading');
-                setRegion(e.target.value);
-              }}
-            >
-              <option value="el_marques_queretaro">El Marqués</option>
-              <option value="colon_queretaro">Colón</option>
-            </select>
-          </label>
-          <label className="field">
-            Cultivo
-            <select
-              value={crop}
-              onChange={(e) => {
-                setStatus('loading');
-                setCrop(e.target.value);
-              }}
-            >
-              <option value="">Todos</option>
-              <option value="maiz_forrajero">Maíz forrajero en verde</option>
-              <option value="alfalfa">Alfalfa verde</option>
-              <option value="cebada">Cebada grano</option>
-              <option value="sorgo">Sorgo forrajero en verde</option>
-            </select>
-          </label>
-          <label className="field">
-            Ciclo
-            <select
-              value={cycle}
-              onChange={(e) => {
-                setStatus('loading');
-                setCycle(e.target.value);
-              }}
-            >
-              <option value="">Todos</option>
-              <option>Primavera-Verano</option>
-              <option>Otoño-Invierno</option>
-              <option>Perennes</option>
-            </select>
-          </label>
-          <label className="field">
-            Modalidad
-            <select
-              value={mode}
-              onChange={(e) => {
-                setStatus('loading');
-                setMode(e.target.value);
-              }}
-            >
-              <option value="">Todas</option>
-              <option>Riego</option>
-              <option>Temporal</option>
-            </select>
-          </label>
-        </div>
-        {status === 'loading' && <p role="status">Cargando datos agrícolas…</p>}
-        {status === 'error' && <p role="alert">{error}</p>}
-        {status === 'source_file_missing' && (
-          <p role="status">No se encontró el libro original en backend/data/raw/siap.</p>
-        )}
-        {status === 'empty' && <p>No hay registros para estos filtros.</p>}
-        {result?.coverage && status !== 'loading' && (
-          <>
-            <p>
-              Libro: {result.coverage.total_rows} registros · años disponibles:{' '}
-              {result.coverage.years_present.join(', ')}.
-            </p>
-            <p>
-              <strong>Brecha temporal:</strong> {result.coverage.years_missing.join(', ')}. No se
-              interpolan años faltantes.
-            </p>
-            <p>{result.price_warning}</p>
-            <p>Pronóstico: no confiable; no se presentan cifras futuras.</p>
-            <p className="fine-print">
-              {result.source}. SHA-256: {result.coverage.sha256}
-            </p>
-          </>
-        )}
-        {status === 'success' && result && (
-          <div className="agriculture-table-wrap">
-            <table className="agriculture-table">
-              <thead>
-                <tr>
-                  <th>Año</th>
-                  <th>Cultivo</th>
-                  <th>Ciclo / modalidad</th>
-                  <th>Sembrada</th>
-                  <th>Cosechada</th>
-                  <th>Siniestrada</th>
-                  <th>Producción</th>
-                  <th>Rendimiento reportado</th>
-                  <th>Valor producción</th>
-                  <th>Preciomediorural reportado</th>
-                  <th>Precio libro no verificado</th>
-                  <th>Valor / volumen derivado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {result.records.map((r, i) => (
-                  <tr key={`${r.year}-${r.crop_original}-${r.cycle}-${r.mode}-${i}`}>
-                    <td>{r.year}</td>
-                    <td>{r.crop_original}</td>
-                    <td>
-                      {r.cycle} / {r.mode}
-                    </td>
-                    <td>{format(r.planted)}</td>
-                    <td>{format(r.harvested)}</td>
-                    <td>{format(r.damaged)}</td>
-                    <td>
-                      {format(r.volume)} {r.unit}
-                    </td>
-                    <td>{format(r.yield_reported)}</td>
-                    <td>{format(r.production_value)}</td>
-                    <td>{r.volume === 0 ? 'Sin producción' : format(r.pmr_reported_unverified)}</td>
-                    <td>
-                      {r.volume === 0 ? 'Sin producción' : format(r.workbook_price_unverified)}
-                    </td>
-                    <td>{format(r.derived_value_per_volume)}</td>
-                  </tr>
+      <section className="surface agricultural-profile rotation-workspace">
+        <h2>Explorar rotación de cultivos</h2>
+        <p>
+          Elige un análisis archivado si está disponible y declara el cultivo anterior de esa
+          parcela. Cada análisis es una observación, no una parcela guardada.
+        </p>
+        <form onSubmit={submit}>
+          <div className="parcel-grid">
+            <label className="field">
+              Cultivo anterior de esta parcela
+              <select
+                value={previous}
+                onChange={(e) => {
+                  setPrevious(e.target.value);
+                  invalidate();
+                }}
+              >
+                <option value="">No registrado</option>
+                {crops.map(([id, name]) => (
+                  <option key={id} value={id}>
+                    {name}
+                  </option>
                 ))}
-              </tbody>
-            </table>
+              </select>
+            </label>
+            <label className="field">
+              Municipio declarado
+              <select
+                value={region}
+                onChange={(e) => {
+                  setRegion(e.target.value);
+                  invalidate();
+                }}
+              >
+                <option value="">No registrado</option>
+                <option value="el_marques_queretaro">El Marqués</option>
+                <option value="colon_queretaro">Colón</option>
+              </select>
+            </label>
+            <label className="field">
+              Modalidad declarada
+              <select
+                value={water}
+                onChange={(e) => {
+                  setWater(e.target.value);
+                  invalidate();
+                }}
+              >
+                <option value="unknown">Desconocida</option>
+                <option value="rainfed">Temporal</option>
+                <option value="irrigated">Riego</option>
+              </select>
+            </label>
+            <label className="field">
+              Análisis satelital archivado (opcional)
+              <select
+                value={analysisId}
+                onChange={(e) => {
+                  setAnalysisId(e.target.value);
+                  invalidate();
+                }}
+              >
+                <option value="">Ninguno</option>
+                {analyses.map((a) => (
+                  <option key={a.analysis_id} value={a.analysis_id}>
+                    {a.name || 'Sin nombre'} · {a.acquired_at || 'fecha desconocida'} ·{' '}
+                    {a.analysis_id.slice(0, 8)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          {analysisMessage && <p>{analysisMessage}</p>}
+          <label>
+            <input
+              type="checkbox"
+              checked={priority}
+              onChange={(e) => {
+                setPriority(e.target.checked);
+                invalidate();
+              }}
+            />{' '}
+            Priorizar cambio de familia botánica (criterio elegido por mí)
+          </label>
+          <div className="monitor-actions">
+            <button className="button button-primary" disabled={status === 'loading'}>
+              Comparar opciones
+            </button>
+          </div>
+        </form>
+        {status === 'loading' && <p role="status">Preparando comparación…</p>}
+        {status === 'error' && <p role="alert">{error}</p>}
+        {result && (
+          <div>
+            <h3>Opciones para evaluar</h3>
+            <p>
+              {result.ordering === 'family_change_requested'
+                ? 'Ordenadas únicamente por cambio de familia solicitado; no es un ranking de aptitud ni rentabilidad.'
+                : 'Sin orden de preferencia: selecciona el cultivo anterior y activa el criterio de familia para aplicar ese único orden.'}
+            </p>
+            <ol>
+              {result.options.map((option) => (
+                <li key={option.crop_id}>
+                  <strong>{option.name}</strong> · {option.family || 'Familia desconocida'} ·{' '}
+                  {option.same_family_as_previous === null
+                    ? 'familia anterior no evaluable'
+                    : option.same_family_as_previous
+                      ? 'misma familia anterior'
+                      : 'familia distinta'}
+                  {option.repeated_crop ? ' · cultivo repetido' : ''}
+                </li>
+              ))}
+            </ol>
+            <h3>Factores y datos faltantes</h3>
+            <p>
+              Suelo, requerimientos de agua, calendario, clima y economía: no evaluables para
+              ordenar con los datos disponibles. Municipio y modalidad son datos declarados, no
+              prueban aptitud.
+            </p>
+            {result.satellite && (
+              <div>
+                <h3>Contexto satelital seleccionado</h3>
+                <p>
+                  Fecha: {result.satellite.acquired_at || 'No disponible'} · NDVI medio:{' '}
+                  {result.satellite.ndvi?.mean ?? 'No disponible'} · NDMI medio:{' '}
+                  {result.satellite.ndmi?.mean ?? 'No disponible'} · Cobertura válida NDVI:{' '}
+                  {result.satellite.valid_pixel_percent_in_aoi == null
+                    ? 'No disponible'
+                    : `${result.satellite.valid_pixel_percent_in_aoi}%`}
+                </p>
+                <p>{result.satellite.note}</p>
+              </div>
+            )}
+            <h3>Limitaciones y siguiente paso</h3>
+            <ul>
+              {result.limitations.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            <p>
+              Consulta a un técnico local y revisa agua, suelo, calendario, costos y mercado antes
+              de decidir. Pronóstico numérico: no confiable.
+            </p>
+            <p className="fine-print">
+              Familias botánicas: catálogo local HaiLex; referencias{' '}
+              <a
+                href="https://www.fao.org/4/s4314e/s4314e0x.htm"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                FAO
+              </a>{' '}
+              y{' '}
+              <a
+                href="https://dof.gob.mx/nota_detalle_popup.php?codigo=5592222"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                DOF
+              </a>
+              .
+            </p>
           </div>
         )}
-        <p className="fine-print">
-          Superficies, unidades monetarias y diccionario deben verificarse con la fuente original.
-          No se mezclan precios ni se eliminan registros de pérdida total.
+      </section>
+      <section className="surface">
+        <h2>Consulta al asesor</h2>
+        <p>
+          El asistente conversacional con Groq no está disponible en esta versión. El perfil no se
+          envía a servicios externos.
+        </p>
+        <p>
+          <a
+            href="https://www.inegi.org.mx/app/indicesdeprecios/Estructura.aspx?idEstructura=1120008000400020"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            INEGI publica índices de precios al productor
+          </a>
+          ; no son cotizaciones actuales por unidad de producto.
         </p>
       </section>
     </>

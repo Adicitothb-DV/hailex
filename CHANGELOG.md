@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## Rotación limitada — 2026-11-15
+
+- Añadido comparador determinista de familias y formulario Asesor Agrícola en lugar de la
+  tabla SIAP; se conserva la API SIAP y el perfil local. Contexto satelital archivado opcional.
+- Sin predicciones, asesor conversacional ni evaluación de aptitud: consultar PROJECT_STATUS.md.
+
 ## Perfil agrícola local — 2026-11-15
 
 - Añadido formulario opcional de perfil en Agricultural Context, guardado local versionado,

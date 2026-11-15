@@ -7,7 +7,7 @@ export const navigation = [
     description: 'Clima y observaciones',
   },
   { id: 'rotation-studio', label: 'Parcel Monitoring', description: 'Monitoreo de parcela' },
-  { id: 'analysis-insights', label: 'Agricultural Context', description: 'Historial agrícola' },
+  { id: 'analysis-insights', label: 'Asesor Agrícola', description: 'Perfil y rotación' },
 ] as const;
 
 export type ScreenId = (typeof navigation)[number]['id'];

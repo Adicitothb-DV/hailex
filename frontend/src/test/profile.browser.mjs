@@ -105,6 +105,40 @@ try {
   );
   assert.equal(await evaluate("localStorage.getItem('hailex-agricultural-profile-v1')"), null);
   console.log('PASS profile save, reload, edit, cancelled and confirmed deletion');
+  await evaluate(`(() => {
+    const root = document.querySelector('.rotation-workspace');
+    const select = root.querySelector('select');
+    select.value = 'maiz_forrajero';
+    select.dispatchEvent(new Event('change', {bubbles:true}));
+    root.querySelector('input[type=checkbox]').click();
+  })()`);
+  await delay(100);
+  await evaluate("document.querySelector('.rotation-workspace form').requestSubmit()");
+  await waitFor("Boolean(document.querySelector('.rotation-workspace ol li'))");
+  assert.ok(
+    (await evaluate("document.querySelector('.rotation-workspace ol li').textContent")).includes(
+      'Alfalfa',
+    ),
+  );
+  assert.ok(
+    (await evaluate("document.querySelector('.rotation-workspace').innerText")).includes(
+      'no confiable',
+    ),
+  );
+  await evaluate(`(() => {
+    const select = document.querySelector('.rotation-workspace select');
+    select.value = 'alfalfa';
+    select.dispatchEvent(new Event('change', {bubbles:true}));
+  })()`);
+  await delay(100);
+  await evaluate("document.querySelector('.rotation-workspace form').requestSubmit()");
+  await waitFor("document.querySelectorAll('.rotation-workspace ol li').length === 4");
+  assert.ok(
+    (
+      await evaluate("document.querySelector('.rotation-workspace ol li:last-child').textContent")
+    ).includes('Alfalfa'),
+  );
+  console.log('PASS deterministic rotation comparison via backend');
 } finally {
   socket?.close();
   browser.kill();

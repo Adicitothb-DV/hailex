@@ -18,6 +18,28 @@ export type SavedAnalysis = {
   acquired_at: string | null;
   status: string;
 };
+export type RotationComparison = {
+  ordering: 'family_change_requested' | 'not_assessable';
+  options: {
+    crop_id: string;
+    name: string;
+    family: string | null;
+    same_family_as_previous: boolean | null;
+    repeated_crop: boolean | null;
+  }[];
+  factors: Record<string, string>;
+  satellite: {
+    analysis_id: string;
+    status: string | null;
+    acquired_at: string | null;
+    ndvi: IndexStats | null;
+    ndmi: IndexStats | null;
+    valid_pixel_percent_in_aoi: number | null;
+    note: string;
+  } | null;
+  forecast_status: 'forecast_not_reliable';
+  limitations: string[];
+};
 export type FieldAnalysis = {
   status: 'success' | 'insufficient_data' | 'no_clear_scene';
   message?: string;
