@@ -1,5 +1,12 @@
 # PROJECT_CONTEXT.md — Contexto Vivo de HaiLex
 
+## Frontend V2
+
+- Navegación de cinco vistas, estado compartido de punto y consulta, mapa vectorial MapLibre
+  y series NASA POWER mediante el backend. Fuentes y health no garantizan disponibilidad NASA.
+- Rotaciones y análisis siguen en preparación: catálogo Fase 7 y motor Fase 8 no implementados.
+- Contrato canónico `docs/API_CONTRACT.md`; implementación real limitada a health, sources y clima.
+
 - **Proyecto:** HaiLex
 - **Evento:** NASA Space Apps Challenge 2026 — Sede Querétaro (14–15 de noviembre de 2026)
 - **Reto:** *Field Shift: Adapting Farms with NASA Data*

@@ -1,5 +1,17 @@
 # ARCHITECTURE.md — Arquitectura del Sistema
 
+## Frontend V2
+
+`frontend/src/app/AppContext.tsx` mantiene ubicación, health, fuentes y resultado climático
+en memoria. `services/api.ts` centraliza HTTP y errores; `types/api.ts` describe modelos
+wire implementados, sin motor agronómico en cliente. Las cinco features se cargan de forma
+diferida; `components/Shared.tsx` presenta estados y procedencia. El drawer usa `dialog`
+nativo, foco y Escape. `styles/v2.css` contiene tokens y comportamiento adaptable.
+
+MapLibre utiliza OpenFreeMap como proveedor vectorial externo, con atribución y entrada
+manual de respaldo. Recharts conserva discontinuidades de null. El indicador solar es
+aproximación astronómica en UTC, no clima. Sin base de datos, persistencia ni autenticación.
+
 Consultar `docs/API_CONTRACT.md` y la sección 8 del Documento Maestro.
 - Frontend: `frontend/` (React + Vite + TS + Tailwind + MapLibre + Recharts).
 - Backend: `backend/` (FastAPI + Pydantic + HTTPX + Pandas + NumPy).

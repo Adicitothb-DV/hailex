@@ -1,11 +1,31 @@
 import { AppLayout } from './app/layout/AppLayout';
+import { lazy, Suspense } from 'react';
 import { useScreenNavigation } from './hooks/useScreenNavigation';
-import { DashboardPage } from './features/dashboard/DashboardPage';
-import { EarthExplorerPage } from './features/earth-explorer/EarthExplorerPage';
-import { ClimateIntelligencePage } from './features/climate-intelligence/ClimateIntelligencePage';
-import { RotationStudioPage } from './features/rotation-studio/RotationStudioPage';
-import { AnalysisInsightsPage } from './features/analysis-insights/AnalysisInsightsPage';
 import { PageHeading } from './components/PageHeading';
+
+const DashboardPage = lazy(() =>
+  import('./features/dashboard/DashboardPage').then((m) => ({ default: m.DashboardPage })),
+);
+const EarthExplorerPage = lazy(() =>
+  import('./features/earth-explorer/EarthExplorerPage').then((m) => ({
+    default: m.EarthExplorerPage,
+  })),
+);
+const ClimateIntelligencePage = lazy(() =>
+  import('./features/climate-intelligence/ClimateIntelligencePage').then((m) => ({
+    default: m.ClimateIntelligencePage,
+  })),
+);
+const RotationStudioPage = lazy(() =>
+  import('./features/rotation-studio/RotationStudioPage').then((m) => ({
+    default: m.RotationStudioPage,
+  })),
+);
+const AnalysisInsightsPage = lazy(() =>
+  import('./features/analysis-insights/AnalysisInsightsPage').then((m) => ({
+    default: m.AnalysisInsightsPage,
+  })),
+);
 
 const pages = {
   dashboard: DashboardPage,
@@ -26,7 +46,9 @@ export default function App() {
       routeKey={hash}
     >
       {Page ? (
-        <Page />
+        <Suspense fallback={<p role="status">Cargando pantalla…</p>}>
+          <Page />
+        </Suspense>
       ) : (
         <>
           <PageHeading

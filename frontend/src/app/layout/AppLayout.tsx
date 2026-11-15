@@ -1,7 +1,8 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Menu, X } from 'lucide-react';
 import type { ScreenId } from '../navigation/navigation';
 import { Sidebar } from './Sidebar';
-import { AppHeader } from './AppHeader';
+import { useApp } from '../AppContext';
 
 export function AppLayout({
   children,
@@ -14,87 +15,104 @@ export function AppLayout({
   label: string;
   routeKey: string;
 }) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const menuButtonRef = useRef<HTMLButtonElement>(null);
-  const mainRef = useRef<HTMLElement>(null);
-
+  const dialog = useRef<HTMLDialogElement>(null);
+  const main = useRef<HTMLElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
+  const { connection, location, refreshConnection } = useApp();
   useEffect(() => {
     document.title = `${label} | HaiLex`;
-    dialogRef.current?.close();
-    mainRef.current?.focus({ preventScroll: true });
+    dialog.current?.close();
+    main.current?.focus({ preventScroll: true });
     window.scrollTo(0, 0);
   }, [label, routeKey]);
-
-  useEffect(() => {
-    const desktop = window.matchMedia('(min-width: 1024px)');
-    const closeOnDesktop = () => {
-      if (desktop.matches && dialogRef.current?.open) {
-        dialogRef.current.close();
-        mainRef.current?.focus({ preventScroll: true });
-      }
-    };
-    desktop.addEventListener('change', closeOnDesktop);
-    return () => desktop.removeEventListener('change', closeOnDesktop);
-  }, []);
-
+  function close() {
+    dialog.current?.close();
+  }
   return (
-    <div className="app-shell">
+    <div className={`v2-shell ${open ? 'drawer-open' : ''}`}>
       <a
         className="skip-link"
         href="#main-content"
         onClick={(event) => {
           event.preventDefault();
-          mainRef.current?.focus();
+          main.current?.focus();
         }}
       >
         Saltar al contenido
       </a>
-      <aside className="desktop-sidebar">
-        <Sidebar active={active} />
-      </aside>
       <dialog
-        id="mobile-navigation"
-        className="mobile-navigation"
-        ref={dialogRef}
-        aria-labelledby="mobile-menu-title"
-        onKeyDown={(event) => {
-          if (event.key !== 'Tab') return;
-          const items = event.currentTarget.querySelectorAll<HTMLElement>(
-            'button:not([disabled]), a[href]',
-          );
-          const first = items[0];
-          const last = items[items.length - 1];
-          if (event.shiftKey && document.activeElement === first) {
-            event.preventDefault();
-            last?.focus();
-          } else if (!event.shiftKey && document.activeElement === last) {
-            event.preventDefault();
-            first?.focus();
-          }
-        }}
+        ref={dialog}
+        id="navigation-drawer"
+        className="v2-drawer"
+        aria-labelledby="drawer-title"
         onClose={() => {
-          if (document.activeElement === document.body) menuButtonRef.current?.focus();
+          setOpen(false);
+          if (document.activeElement === document.body) button.current?.focus();
+        }}
+        onClick={(event) => {
+          if (event.target === event.currentTarget) close();
         }}
       >
-        <div className="mobile-menu-heading">
-          <h2 id="mobile-menu-title">Navegación</h2>
-          <button type="button" className="close-menu" onClick={() => dialogRef.current?.close()}>
-            Cerrar
-          </button>
+        <div className="drawer-inner">
+          <div className="drawer-title">
+            <h2 id="drawer-title">Explorar HaiLex</h2>
+            <button
+              className="icon-button drawer-close"
+              type="button"
+              aria-label="Cerrar menú"
+              onClick={close}
+            >
+              <X size={20} />
+            </button>
+          </div>
+          <Sidebar active={active} onNavigate={close} />
         </div>
-        <Sidebar active={active} onNavigate={() => dialogRef.current?.close()} />
       </dialog>
-      <div className="workspace">
-        <AppHeader
-          label={label}
-          menuButtonRef={menuButtonRef}
-          onOpenMenu={() => dialogRef.current?.showModal()}
-        />
-        <main id="main-content" className="main-content" ref={mainRef} tabIndex={-1}>
+      <div className="v2-workspace">
+        <header className="v2-header">
+          <div className="header-context">
+            <button
+              ref={button}
+              type="button"
+              className="menu-trigger"
+              aria-label="Abrir menú"
+              aria-haspopup="dialog"
+              aria-expanded={open}
+              aria-controls="navigation-drawer"
+              onClick={() => {
+                dialog.current?.showModal();
+                setOpen(true);
+              }}
+            >
+              <Menu size={21} />
+            </button>
+            <span className="header-product">HaiLex</span>
+            <span aria-hidden="true">/</span>
+            <span className="header-page">{label}</span>
+          </div>
+          <div className="header-actions">
+            <span className="header-location">{location.label}</span>
+            <button
+              type="button"
+              className={`connection connection-${connection}`}
+              onClick={refreshConnection}
+              title="Volver a comprobar el backend"
+            >
+              <span className="connection-dot" />
+              {connection === 'connected'
+                ? 'Backend conectado'
+                : connection === 'loading'
+                  ? 'Comprobando backend'
+                  : 'Backend desconectado'}
+            </button>
+          </div>
+        </header>
+        <main id="main-content" className="v2-main" ref={main} tabIndex={-1}>
           {children}
         </main>
-        <footer className="app-footer">
-          <span>HaiLex · Inteligencia agrícola con contexto</span>
+        <footer className="v2-footer">
+          <span>HaiLex · Earth & agriculture</span>
           <span>Evaluación exploratoria, no asesoría agronómica.</span>
         </footer>
       </div>

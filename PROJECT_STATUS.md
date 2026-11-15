@@ -1,5 +1,19 @@
 # PROJECT_STATUS.md — Estado Actual del Proyecto
 
+## Frontend V2 — 2026-11-14 (hora de México)
+
+- Base UI-01 preservada en `c194c23`; merge del backend `9e481ab` en `cc213eb`.
+- Cinco rutas, drawer, estado compartido, mapa vectorial y conexión health/sources/clima;
+  presentación de faltantes y procedencia. Perfil, catálogo y motor siguen pendientes.
+- Typecheck, lint y build correctos; 55 pruebas backend aprobadas en venv temporal.
+- Navegador: cinco rutas en 320/768/1024/1366 px, drawer/Escape, ambos municipios 2025,
+  faltantes de radiación, mapa cargado y fallido, backend desconectado y movimiento reducido.
+- Capturas en carpeta temporal local, no versionadas. Pendiente auditoría de contraste,
+  lector de pantalla, zoom 200 % y revisión agronómica. MapLibre produce chunk grande.
+- Sin geolocalización automática, persistencia, puntuaciones ni resultados agronómicos.
+- Próximo paso: integrar catálogo/perfil en Fase 7 y motor determinista en Fase 8, después
+  de acordar y verificar el contrato; no se declaran completadas esas fases.
+
 - **Última actualización:** 2026-11-14 (America/Mexico_City)
 - **Fase actual:** Fase 6 — NASA POWER Service implementado; revisión agronómica local pendiente según `docs/AGRONOMIC_RULES.md`.
 - **Checkpoint documental:** `2d40f11` (`docs: define API and data contracts`), sobre base `dad906e`, conservó los cinco documentos de INT-01. Commit funcional: `feat: create FastAPI service foundation` (consultar git log tras su creación).

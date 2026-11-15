@@ -29,6 +29,27 @@ export function AnalysisInsightsPage() {
           No sustituye asesoría agronómica local ni predice rendimiento.
         </p>
       </aside>
+      <section className="surface">
+        <p className="eyebrow">ESTRUCTURA DE COMPARACIÓN</p>
+        <h2>Qué incluirá un análisis</h2>
+        <div className="insights-grid">
+          <div>
+            <strong>Escenarios y criterios</strong>
+            <p>Secuencias, pesos y contribuciones.</p>
+          </div>
+          <div>
+            <strong>Evidencia y fuentes</strong>
+            <p>Procedencia y versión de reglas.</p>
+          </div>
+          <div>
+            <strong>Datos faltantes</strong>
+            <p>Advertencias y criterios no evaluables.</p>
+          </div>
+        </div>
+        <p className="fine-print">
+          Motor de comparación pendiente; no existen puntuaciones ni resultados en esta vista.
+        </p>
+      </section>
     </>
   );
 }

@@ -1,5 +1,13 @@
 # CHANGELOG.md
 
+## Frontend V2 — 2026-11-14 (America/Mexico_City)
+
+- Diseño de tokens, drawer accesible y cinco vistas; estado compartido de ubicación.
+- Integración health, sources y series climáticas con procedencia, faltantes y errores.
+- MapLibre/OpenFreeMap con atribución y fallback; Recharts, Lucide y cálculo solar UTC.
+- Rotaciones y análisis permanecen en preparación, sin resultados simulados.
+- Validaciones y limitaciones registradas en `PROJECT_STATUS.md` y `docs/TESTING.md`.
+
 ## UI-01 — 2026-11-14 (America/Mexico_City; hora no registrada)
 
 - Shell frontend V1: tema claro, navegación verde bosque, header y cinco pantallas con estados honestos.

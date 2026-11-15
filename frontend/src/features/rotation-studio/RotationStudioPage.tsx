@@ -26,6 +26,21 @@ export function RotationStudioPage() {
           <p>Preferencias y restricciones</p>
         </li>
       </ol>
+      <section className="surface crop-preview">
+        <p className="eyebrow">CULTIVOS DEL ALCANCE</p>
+        <h2>Catálogo en preparación</h2>
+        <p>Identificadores de producto; todavía no son fichas ni recomendaciones agronómicas.</p>
+        <div className="crop-tags">
+          <span>Maíz forrajero</span>
+          <span>Alfalfa</span>
+          <span>Cebada</span>
+          <span>Sorgo</span>
+        </div>
+        <p>
+          Perfil de suelo, historial, ciclos, restricciones y escenarios: pendientes de catálogo y
+          motor del backend.
+        </p>
+      </section>
       <PendingPanel title="Todavía no hay escenarios">
         <p>
           El perfil, el historial declarado y la edición de secuencias se implementarán con el

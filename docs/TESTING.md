@@ -1,5 +1,16 @@
 # TESTING.md — Plan y Registro de Pruebas
 
+## Frontend V2 — 14 de noviembre de 2026, hora de México
+
+- `npm.cmd run typecheck`, lint y build: correctos; build avisa del tamaño del módulo de mapa.
+- `python -m pytest -q` con dependencias del lockfile en venv temporal: **55 passed**.
+- `npm.cmd run test:ui` contra Vite y Uvicorn reales: cinco rutas sin desbordamiento a
+  320/768/1024/1366 px, foco de ruta, drawer, Escape, ambas consultas 2025 y procedencia;
+  intervalo 2026-10-01..07 con radiación sin valores; mapa listo y fallback al bloquear
+  proveedor; backend desconectado y reintento; movimiento reducido; sin excepciones JS.
+- Cinco capturas generadas en carpeta temporal de navegador, no incluidas en Git. La prueba
+  no sustituye revisión manual de contraste, lector de pantalla o zoom al 200 %.
+
 ## Registro Fase 6 — 14 de noviembre de 2026
 
 Suite sin red con HTTPX MockTransport y ASGITransport: cliente, errores, normalización,
