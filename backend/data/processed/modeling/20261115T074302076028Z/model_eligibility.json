@@ -1,0 +1,127 @@
+{
+  "status": "blocked_integrity",
+  "training_executed": false,
+  "minimum_policy_proposed_not_validated": {
+    "group_history_years": 10,
+    "minimum_temporal_folds": 3,
+    "benchmark_models": [
+      "persistence",
+      "drift"
+    ],
+    "temporal_split": "expanding whole year"
+  },
+  "groups": [
+    {
+      "region_id": "colon_queretaro",
+      "crop_name": "alfalfa",
+      "rows": 17,
+      "pmr_rows": 5,
+      "workbook_price_unverified_rows": 12,
+      "status": "blocked_integrity",
+      "forecast_allowed": false,
+      "reasons": [
+        "unverified price units and workbook provenance",
+        "official deflator not validated",
+        "publication dates and vintage unavailable"
+      ]
+    },
+    {
+      "region_id": "colon_queretaro",
+      "crop_name": "cebada",
+      "rows": 29,
+      "pmr_rows": 5,
+      "workbook_price_unverified_rows": 23,
+      "status": "blocked_integrity",
+      "forecast_allowed": false,
+      "reasons": [
+        "unverified price units and workbook provenance",
+        "official deflator not validated",
+        "publication dates and vintage unavailable"
+      ]
+    },
+    {
+      "region_id": "colon_queretaro",
+      "crop_name": "maiz_forrajero",
+      "rows": 17,
+      "pmr_rows": 5,
+      "workbook_price_unverified_rows": 12,
+      "status": "blocked_integrity",
+      "forecast_allowed": false,
+      "reasons": [
+        "unverified price units and workbook provenance",
+        "official deflator not validated",
+        "publication dates and vintage unavailable"
+      ]
+    },
+    {
+      "region_id": "colon_queretaro",
+      "crop_name": "sorgo",
+      "rows": 17,
+      "pmr_rows": 5,
+      "workbook_price_unverified_rows": 12,
+      "status": "blocked_integrity",
+      "forecast_allowed": false,
+      "reasons": [
+        "unverified price units and workbook provenance",
+        "official deflator not validated",
+        "publication dates and vintage unavailable"
+      ]
+    },
+    {
+      "region_id": "el_marques_queretaro",
+      "crop_name": "alfalfa",
+      "rows": 17,
+      "pmr_rows": 5,
+      "workbook_price_unverified_rows": 12,
+      "status": "blocked_integrity",
+      "forecast_allowed": false,
+      "reasons": [
+        "unverified price units and workbook provenance",
+        "official deflator not validated",
+        "publication dates and vintage unavailable"
+      ]
+    },
+    {
+      "region_id": "el_marques_queretaro",
+      "crop_name": "cebada",
+      "rows": 19,
+      "pmr_rows": 5,
+      "workbook_price_unverified_rows": 13,
+      "status": "blocked_integrity",
+      "forecast_allowed": false,
+      "reasons": [
+        "unverified price units and workbook provenance",
+        "official deflator not validated",
+        "publication dates and vintage unavailable"
+      ]
+    },
+    {
+      "region_id": "el_marques_queretaro",
+      "crop_name": "maiz_forrajero",
+      "rows": 18,
+      "pmr_rows": 6,
+      "workbook_price_unverified_rows": 12,
+      "status": "blocked_integrity",
+      "forecast_allowed": false,
+      "reasons": [
+        "unverified price units and workbook provenance",
+        "official deflator not validated",
+        "publication dates and vintage unavailable"
+      ]
+    },
+    {
+      "region_id": "el_marques_queretaro",
+      "crop_name": "sorgo",
+      "rows": 21,
+      "pmr_rows": 5,
+      "workbook_price_unverified_rows": 16,
+      "status": "blocked_integrity",
+      "forecast_allowed": false,
+      "reasons": [
+        "unverified price units and workbook provenance",
+        "official deflator not validated",
+        "publication dates and vintage unavailable"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "region": "el_marques_queretaro",
+  "coordinates": [
+    20.60656972,
+    -100.33109667
+  ],
+  "start": "2003-01-01",
+  "end": "2024-12-31",
+  "retrieved_at_utc": "2026-11-15T07:33:17.158736+00:00",
+  "endpoint": "https://power.larc.nasa.gov/api/temporal/daily/point",
+  "community": "AG",
+  "time_standard": "UTC",
+  "parameters": [
+    "T2M",
+    "PRECTOTCORR",
+    "ALLSKY_SFC_SW_DWN"
+  ],
+  "sha256": "32dd856115d50b8a98a543bd9a890ec2b24b72fb5192439839329f216b47cba1",
+  "storage": "canonical JSON reserialized from PowerClient parsed response, not HTTP bytes",
+  "normalizer_version": "1.0.0",
+  "warnings": [
+    "Una celda regional no describe con exactitud una parcela."
+  ]
+}

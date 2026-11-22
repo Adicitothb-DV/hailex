@@ -1,9 +1,79 @@
 # HaiLex Backend (FastAPI)
 
+**Demo vigente:** endpoints de parcela y contexto agrícola, instalación, limitaciones y
+ejecución con un worker documentados en `docs/FINAL_DEMO_SCOPE.md`. El contenido siguiente
+registra funcionalidades y fases históricas.
+
+## Catálogo y parcela
+
+`GET /api/v1/crops` devuelve el catálogo JSON local con evidencias y limitaciones;
+los requerimientos locales desconocidos permanecen null. `app.schemas.crops.ParcelProfile`
+define el perfil con procedencia y validación; no almacena ni georreferencia parcelas.
+INEGI, cuando se aporte como referencia cartográfica, no es análisis de laboratorio.
+NASA POWER se consulta por el endpoint climático existente para contexto descriptivo,
+con fecha, fuente y limitaciones; no se consulta al pedir el catálogo.
+
+## Pipeline climático histórico — Fase 7C
+
+Desde `C:\Users\Alex\Downloads\hailex\backend`:
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m scripts.data_pipeline.climate_history
+& '.\.venv\Scripts\python.exe' -m scripts.data_pipeline.run_climate_pipeline
+```
+
+La primera orden reutiliza instantáneas verificadas y, si faltan, consulta POWER de forma
+secuencial para 2003–2024. La segunda es offline y reutiliza fixtures 2025. Se guardan
+JSON canónicos reserializados, no los bytes HTTP originales, con SHA-256 y metadatos.
+El CSV diario y las características están en `backend/data/processed/climate/`; el panel
+en `backend/data/processed/siap/agricultural_climate_panel.csv`. No sustituye sus entradas.
+
+Calendario nacional aproximado SIAP: OI octubre t-1–septiembre t; PV marzo t–marzo t+1;
+alfalfa octubre t-1–septiembre t. Otra publicación oficial indica abril para inicio de
+siembra PV: se utiliza marzo de la página de calendario, con incertidumbre histórica y
+sin fechas locales ni fases fenológicas. Los periodos incompletos no generan agregados
+totales. Temperaturas mínimas y máximas son extremos de medias diarias, no T2M_MIN/MAX.
+Precipitación diaria >=1 mm y rachas <1 mm siguen Climdex; terciles retrospectivos con
+al menos 10 periodos completos resumen el contexto histórico. No se calculan anomalías
+1991–2020. NASA POWER se usa como contexto descriptivo, no para anticipar el clima.
+
+## Pipeline SIAP offline — Fase 7B
+
+Colocar el XLSX original sin modificar en
+`C:\Users\Alex\Downloads\hailex\backend\data\raw\siap\Consolidado_El_Marques_Colon_Cultivos.xlsx`.
+La hoja requerida es `Consolidado`. Instalar el lock descrito abajo: incorpora openpyxl
+para leer XLSX (y su dependencia et-xmlfile). Ejecutar desde backend:
+
+```powershell
+Set-Location 'C:\Users\Alex\Downloads\hailex\backend'
+& '.\.venv\Scripts\python.exe' -m pip install -r '.\requirements.lock'
+& '.\.venv\Scripts\python.exe' -m scripts.data_pipeline.run_siap_pipeline
+& '.\.venv\Scripts\python.exe' -m pytest -q
+& '.\.venv\Scripts\python.exe' -m ruff check .
+```
+
+Resultados regenerables en `C:\Users\Alex\Downloads\hailex\backend\data\processed\siap`:
+observaciones, resumen por ciclo/modalidad, serie colapsada, reporte y manifiesto.
+El origen se lee sin escribirlo y su SHA-256 está en el manifiesto. Las filas
+rechazadas siguen en observaciones; los grupos afectados se suprimen en agregados.
+`accepted` significa sin alertas automáticas, no validación oficial. `warning` requiere
+revisión; `rejected` indica clave, categoría o medida inválida y no borra la fila.
+
+`Preciomediorural` se conserva separado de `Precio`; `official_pmr` identifica solo el
+nombre del campo, no certifica el consolidado. `workbook_price_unverified` no implica
+PMR oficial. La diferencia absoluta mayor a 0.005 requiere revisión; con producción cero
+el precio analítico es nulo. Un agregado de precio es suma de valores dividida entre suma
+de volúmenes, no promedio simple. La tabla colapsada mezcla explícitamente ciclo y
+modalidad y es provisional: pueden existir solapamientos; no usarla como dato validado.
+Unidades monetarias, equivalencia oficial, calendarios y procedencia original pendientes;
+2015–2020 no se imputan. CSV y reporte son deterministas; el manifiesto registra hora de
+ejecución, por lo que cambia al regenerar. No se consulta NASA ni se crean endpoints.
+
 ## Estado
 
-BE-02 prepara únicamente el entorno y las herramientas. No existen todavía la aplicación
-FastAPI, endpoints, cliente NASA, catálogo ni motor de rotaciones. No se incluyen datos demo.
+Fase 6 incorpora cliente NASA POWER, clima, fuentes, caché y snapshots en memoria,
+además de health, OpenAPI/Swagger, configuración, CORS, errores uniformes y logging.
+Catálogo y motor de rotaciones no están implementados. No se incluyen datos demo.
 El contrato compartido está en `C:\Users\Alex\Downloads\hailex\docs\API_CONTRACT.md`.
 
 ## Requisitos y decisiones
@@ -21,7 +91,8 @@ El contrato compartido está en `C:\Users\Alex\Downloads\hailex\docs\API_CONTRAC
 
 Dependencias de ejecución: FastAPI y Uvicorn (API/ASGI), Pydantic v2 y Pydantic Settings
 (validación/configuración), HTTPX (NASA), Pandas y NumPy (series y cálculos del MVP).
-Desarrollo: Pytest y Ruff. Se preparan ahora; su presencia no implica funciones implementadas.
+Desarrollo: Pytest y Ruff. HTTPX consulta POWER; Pandas/NumPy están disponibles para
+fases posteriores y su presencia no implica reglas agronómicas implementadas.
 
 ## Preparación en PowerShell
 
@@ -73,30 +144,93 @@ Ejecutar desde `C:\Users\Alex\Downloads\hailex\backend`:
 & '.\.venv\Scripts\python.exe' -B -m pytest -p no:cacheprovider
 ```
 
-**Por ahora Pytest no encuentra pruebas y devuelve código 5**: no representa pruebas
-aprobadas. Ruff puede no encontrar archivos Python; eso tampoco valida funcionalidad.
-La comprobación de FastAPI es el comando de importación/versión anterior, no `fastapi --version`.
-
-La comprobación adicional en memoria con `TestClient` funcionó, pero Starlette 1.10.0
-advierte que su integración con HTTPX está deprecada. No se añadió `httpx2`: queda
-registrado para decidir el enfoque de pruebas HTTP al implementar la aplicación.
-No es un fallo de importación ni de `pip check`.
-
-Cuando una fase posterior implemente `app.main:app`, el comando de desarrollo será:
+La suite incluye regresión foundation y pruebas climáticas sin servicios externos. Utiliza
+HTTPX ASGITransport y asyncio, no TestClient ni paquetes nuevos. Validación obligatoria:
 
 ```powershell
 Set-Location 'C:\Users\Alex\Downloads\hailex\backend'
-& '.\.venv\Scripts\python.exe' -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+& '.\.venv\Scripts\python.exe' -m pytest -q
+& '.\.venv\Scripts\python.exe' -m ruff check app tests
+& '.\.venv\Scripts\python.exe' -m ruff format --check app tests
+& '.\.venv\Scripts\python.exe' -m pip check
 ```
 
-**No ejecutarlo todavía:** `app.main` aún no existe.
+## Iniciar servidor y consultar Swagger
+
+Sin activar el entorno (recomendado si PowerShell bloquea scripts):
+
+```powershell
+Set-Location 'C:\Users\Alex\Downloads\hailex\backend'
+& '.\.venv\Scripts\python.exe' -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1
+```
+
+También puede activar el entorno en una terminal autorizada:
+
+```powershell
+Set-Location 'C:\Users\Alex\Downloads\hailex\backend'
+& 'C:\Users\Alex\Downloads\hailex\backend\.venv\Scripts\Activate.ps1'
+python -m uvicorn app.main:app --reload
+```
+
+No se cambia la política de ejecución del sistema. Si la activación está bloqueada,
+use el ejecutable explícito del ejemplo anterior.
+
+- Health: `http://127.0.0.1:8000/api/v1/health`.
+- Swagger: `http://127.0.0.1:8000/docs`.
+- OpenAPI: `http://127.0.0.1:8000/openapi.json`.
+- Versión del servicio `0.1.0`, contrato `1.0.0`; health solo comprueba la aplicación.
+- Clima: `http://127.0.0.1:8000/api/v1/climate/series?latitude=20.60656972&longitude=-100.33109667&start_date=2025-01-01&end_date=2025-12-31`.
+- Fuentes: `http://127.0.0.1:8000/api/v1/sources`. No hay alias `/health`; crops y compare aún devuelven 404.
 
 ## Variables de entorno y seguridad
 
 `C:\Users\Alex\Downloads\hailex\backend\.env.example` documenta las variables previstas.
-Todavía no hay cargador de configuración: instalar Pydantic Settings no activa esa plantilla.
-No se ha creado `.env`, ni se garantiza que Uvicorn lea `APP_PORT` automáticamente.
-En una fase posterior se validarán timeout, CORS y configuración NASA.
+Settings carga opcionalmente `.env` desde la carpeta backend, en UTF-8; las variables
+de entorno prevalecen. No se creó `.env` ni se necesita para ejecutar valores locales.
+
+| Variable | Estado en Fase 5 |
+|---|---|
+| APP_ENV | development/test/production, desarrollo por defecto; debug HTTP siempre desactivado. |
+| APP_PORT | Entero 1..65535, default 8000; validado pero Uvicorn CLI requiere `--port` explícito para cambiarlo. |
+| CORS_ORIGINS | CSV de orígenes HTTP(S) sin ruta, credenciales ni wildcard; default localhost:5173 y 127.0.0.1:5173. |
+| NASA_POWER_BASE_URL | Solo endpoint HTTPS oficial Daily Point; por defecto la URL oficial. |
+| NASA_POWER_TIMEOUT_SECONDS | Timeout HTTPX positivo; default 15 segundos. |
+| CLIMATE_CACHE_TTL_SECONDS | TTL de caché por defecto 1800 segundos, independiente del snapshot. |
+| CLIMATE_CACHE_MAX_ENTRIES | Límite de entradas de caché, por defecto 128. |
+| CLIMATE_SNAPSHOT_MAX_ENTRIES | Máximo de snapshots activos, por defecto 1024; saturación devuelve 503. |
+
+CORS permite GET/POST y preflight OPTIONS, Content-Type, sin credenciales. Expone
+X-Request-ID para lectura por frontend. Nuevos orígenes requieren configuración explícita;
+un origen rechazado no recibe Access-Control-Allow-Origin (CORS no bloquea clientes no navegador).
+
+Errores: `error: {code, message, request_id, fields}`; 400 para JSON inválido, 422 para
+validación, 404/405 para rutas/métodos y 500 seguro para fallos inesperados.
+Cada petición genera UUID propio en X-Request-ID y request.state, sin confiar en el ID
+enviado por cliente. Los logs de aplicación incluyen método, ruta de plantilla, estado,
+duración y request ID; no cuerpos, headers, queries ni mensajes de excepción sensibles.
+Los fallos internos registran tipo y ubicaciones de frames, sin variables locales.
+El log de acceso estándar Uvicorn tiene su destino redactado para no filtrar queries.
+
+Arquitectura real: `app/main.py` compone configuración, router, handlers y middleware;
+`app/api/routes/health.py` solo liveness; `app/schemas/common.py` modelos de wire;
+`app/core/` configuración, errores, contexto/logging y CORS. Véase documentación de
+arquitectura y pruebas en `C:\Users\Alex\Downloads\hailex\docs`.
 
 `.venv`, `.env` y cachés están excluidos por las reglas Git del repositorio.
 Versionar `pyproject.toml` y `requirements.lock`, nunca el entorno ni credenciales.
+
+## Clima, procedencia y almacenamiento temporal
+
+La ruta acepta cualquier latitud/longitud válida y fechas ISO no futuras hasta 366 días
+inclusivos. Solicita `T2M` (`C`), `PRECTOTCORR` (`mm/day`) y `ALLSKY_SFC_SW_DWN`
+(`MJ/m^2/day`), AG y UTC. Normaliza sentinel declarado y fechas ausentes a null,
+conserva ceros y negativos válidos y devuelve conteos y límites por variable. La resolución
+meteorológica es 0.5° × 0.625°; radiación 1° × 1°. Son productos regionales modelados o
+estimados, no mediciones de parcela.
+
+Cada respuesta crea snapshot inmutable de 30 minutos; se pierde al reiniciar. Cache hit
+crea otro ID y conserva `retrieved_at`. Sin Redis, base de datos ni workers múltiples.
+Si falla NASA, se usa un fixture real únicamente para las coordenadas y el año 2025
+exactos de los dos puntos archivados; se identifica `historical_fixture` y se advierte
+el fallo. No hay sustitución automática por datos simulados ni fixture para otros rangos.
+No se necesita API key. Los timestamps se expresan en UTC.
